@@ -1,0 +1,7 @@
+// assets/l10n/app_en.arb
+{
+  "appTitle": "School App",
+  "login": "Login",
+  "students": "Students",
+  "settings": "Settings"
+}
