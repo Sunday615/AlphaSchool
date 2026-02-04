@@ -914,6 +914,28 @@ class _CheckPill extends StatelessWidget {
         : AppColors.slate.withOpacity(.12);
     final fg = isDark ? Colors.white : AppColors.blue500;
 
+    // ✅ Checkbox colors (fix dark mode visibility)
+    final fillColor = MaterialStateProperty.resolveWith<Color>((states) {
+      if (states.contains(MaterialState.selected)) {
+        // ✅ checked box background = WHITE in darkmode
+        return isDark ? Colors.white : AppColors.blue500;
+      }
+      // ✅ unchecked background transparent
+      return Colors.transparent;
+    });
+
+    final checkColor = isDark
+        ? AppColors
+              .blue500 // ✅ check mark = dark blue on white box
+        : Colors.white;
+
+    final side = BorderSide(
+      color: isDark
+          ? Colors.white.withOpacity(.55) // ✅ clearer outline in dark mode
+          : AppColors.blue500.withOpacity(.35),
+      width: 1.2,
+    );
+
     return InkWell(
       borderRadius: BorderRadius.circular(999),
       onTap: () => onChanged(!value),
@@ -930,6 +952,16 @@ class _CheckPill extends StatelessWidget {
             Checkbox(
               value: value,
               onChanged: (v) => onChanged(v ?? false),
+
+              // ✅ IMPORTANT: make it clear in dark mode
+              fillColor: fillColor,
+              checkColor: checkColor,
+              side: side,
+
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
             ),
