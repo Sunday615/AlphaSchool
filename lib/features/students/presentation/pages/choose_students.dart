@@ -52,14 +52,12 @@ class _StudentsCardListPageState extends State<StudentsCardListPage>
   }
 
   ThemeData _effectiveTheme(Locale locale, bool dark) {
-    final base = dark
-        ? AppTheme.darkTheme(locale)
-        : AppTheme.lightTheme(locale);
-    return base.copyWith(scaffoldBackgroundColor: Colors.transparent);
+    return dark ? AppTheme.darkTheme(locale) : AppTheme.lightTheme(locale);
   }
 
   PageRouteBuilder _smoothRoute(Widget page) {
     return PageRouteBuilder(
+      opaque: true,
       transitionDuration: const Duration(milliseconds: 320),
       reverseTransitionDuration: const Duration(milliseconds: 280),
       pageBuilder: (_, __, ___) => page,
@@ -161,6 +159,7 @@ class _StudentsCardListPageState extends State<StudentsCardListPage>
                   : AppColors.gray;
 
               return Scaffold(
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 body: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(

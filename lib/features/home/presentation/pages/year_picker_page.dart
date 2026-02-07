@@ -68,6 +68,7 @@ class _YearPickerPageState extends State<YearPickerPage> {
 
   PageRouteBuilder _smoothRoute(Widget page) {
     return PageRouteBuilder(
+      opaque: true,
       transitionDuration: const Duration(milliseconds: 360),
       reverseTransitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (_, __, ___) => page,
@@ -104,13 +105,8 @@ class _YearPickerPageState extends State<YearPickerPage> {
         final base = (mode == ThemeMode.dark)
             ? AppTheme.darkTheme(locale)
             : AppTheme.lightTheme(locale);
-
-        final themed = base.copyWith(
-          scaffoldBackgroundColor: Colors.transparent,
-        );
-
         return AnimatedTheme(
-          data: themed,
+          data: base,
           duration: const Duration(milliseconds: 260),
           curve: Curves.easeOutCubic,
           child: Builder(
@@ -143,6 +139,7 @@ class _YearPickerPageState extends State<YearPickerPage> {
                   : AppColors.slate.withOpacity(.12);
 
               return Scaffold(
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 body: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
