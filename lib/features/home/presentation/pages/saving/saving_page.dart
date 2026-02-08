@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_theme.dart';
 
 class SavingPage extends StatefulWidget {
   const SavingPage({super.key});
@@ -44,11 +45,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
   // Styles
   // =========================
   LinearGradient _premiumGradient(bool isDark) => isDark
-      ? const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF071A3A), Color(0xFF0B2A6F), Color(0xFF1246A8)],
-        )
+      ? AppTheme.premiumDarkGradient
       : LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -80,7 +77,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
           data: t.copyWith(
             colorScheme: t.colorScheme.copyWith(
               primary: AppColors.blue500,
-              surface: isDark ? const Color(0xFF071A3A) : Colors.white,
+              surface: isDark ? AppTheme.darkBluePremium : Colors.white,
             ),
           ),
           child: child!,
@@ -160,103 +157,129 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
   // =========================
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context);
-    final isDark = t.brightness == Brightness.dark;
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.mode,
+      builder: (context, mode, _) {
+        final locale = Localizations.localeOf(context);
+        final base = (mode == ThemeMode.dark)
+            ? AppTheme.darkTheme(locale)
+            : AppTheme.lightTheme(locale);
 
-    final titleColor = isDark ? Colors.white : AppColors.blue500;
+        return AnimatedTheme(
+          data: base,
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          child: Builder(
+            builder: (context) {
+              final t = Theme.of(context);
+              final isDark = t.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: t.scaffoldBackgroundColor,
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(gradient: _premiumGradient(isDark)),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-                      child: Row(
+              final titleColor = isDark ? Colors.white : AppColors.blue500;
+
+              return Scaffold(
+                backgroundColor: t.scaffoldBackgroundColor,
+                body: Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: _premiumGradient(isDark),
+                      ),
+                    ),
+                    SafeArea(
+                      child: Column(
                         children: [
-                          _GlassIconButton(
-                            isDark: isDark,
-                            icon: FontAwesomeIcons.arrowLeft,
-                            onTap: () => Navigator.of(context).pop(),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              "Saving",
-                              style: t.textTheme.titleLarge?.copyWith(
-                                color: titleColor,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: .2,
-                              ),
+                          Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  14,
+                                  10,
+                                  14,
+                                  8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    _GlassIconButton(
+                                      isDark: isDark,
+                                      icon: FontAwesomeIcons.arrowLeft,
+                                      onTap: () => Navigator.of(context).pop(),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        "Saving",
+                                        style: t.textTheme.titleLarge?.copyWith(
+                                          color: titleColor,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: .2,
+                                        ),
+                                      ),
+                                    ),
+                                    _GlassIconButton(
+                                      isDark: isDark,
+                                      icon: FontAwesomeIcons.arrowsRotate,
+                                      onTap: _resetRange,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    _GlassIconButton(
+                                      isDark: isDark,
+                                      icon: FontAwesomeIcons.calendarDays,
+                                      onTap: _pickRange,
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(duration: 220.ms)
+                              .slideY(begin: .08, end: 0, duration: 220.ms),
+
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                            child: Column(
+                              children: [
+                                _RangeBar(
+                                      isDark: isDark,
+                                      from: _fromDate,
+                                      to: _toDate,
+                                      onTap: _pickRange,
+                                    )
+                                    .animate()
+                                    .fadeIn(duration: 220.ms, delay: 40.ms)
+                                    .slideY(begin: .08, end: 0),
+                                const SizedBox(height: 10),
+                                _GlassTabBar(isDark: isDark, controller: _tab)
+                                    .animate()
+                                    .fadeIn(duration: 220.ms, delay: 80.ms)
+                                    .slideY(begin: .08, end: 0),
+                              ],
                             ),
                           ),
-                          _GlassIconButton(
-                            isDark: isDark,
-                            icon: FontAwesomeIcons.arrowsRotate,
-                            onTap: _resetRange,
-                          ),
-                          const SizedBox(width: 10),
-                          _GlassIconButton(
-                            isDark: isDark,
-                            icon: FontAwesomeIcons.calendarDays,
-                            onTap: _pickRange,
+
+                          Expanded(
+                            child: TabBarView(
+                              controller: _tab,
+                              children: [
+                                _SavingTabBody(
+                                  kind: "Personal",
+                                  isDark: isDark,
+                                  dataBuilder: () => _buildView(_dataForTab(0)),
+                                ),
+                                _SavingTabBody(
+                                  kind: "Class",
+                                  isDark: isDark,
+                                  dataBuilder: () => _buildView(_dataForTab(1)),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    )
-                    .animate()
-                    .fadeIn(duration: 220.ms)
-                    .slideY(begin: .08, end: 0, duration: 220.ms),
-
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-                  child: Column(
-                    children: [
-                      _RangeBar(
-                            isDark: isDark,
-                            from: _fromDate,
-                            to: _toDate,
-                            onTap: _pickRange,
-                          )
-                          .animate()
-                          .fadeIn(duration: 220.ms, delay: 40.ms)
-                          .slideY(begin: .08, end: 0),
-                      const SizedBox(height: 10),
-                      _GlassTabBar(isDark: isDark, controller: _tab)
-                          .animate()
-                          .fadeIn(duration: 220.ms, delay: 80.ms)
-                          .slideY(begin: .08, end: 0),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-
-                Expanded(
-                  child: TabBarView(
-                    controller: _tab,
-                    children: [
-                      _SavingTabBody(
-                        kind: "Personal",
-                        isDark: isDark,
-                        dataBuilder: () => _buildView(_dataForTab(0)),
-                      ),
-                      _SavingTabBody(
-                        kind: "Class",
-                        isDark: isDark,
-                        dataBuilder: () => _buildView(_dataForTab(1)),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

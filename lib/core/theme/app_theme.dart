@@ -4,6 +4,21 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
+  /// ✅ Premium Dark Blue (shared)
+  /// ใช้เป็นสีพื้นหลัง/การ์ด/gradient ในโหมด Dark ให้ดู “premium”
+  static const Color darkBluePremium = Color(0xFF0B1220);
+
+  /// ✅ Premium Dark Gradient (shared)
+  static const Color _premiumA = Color(0xFF071A3A);
+  static const Color _premiumB = Color(0xFF0B2A6F);
+  static const Color _premiumC = Color(0xFF1246A8);
+
+  static const LinearGradient premiumDarkGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [_premiumA, _premiumB, _premiumC],
+  );
+
   /// ✅ Global ThemeMode (shared across pages)
   /// - เปลี่ยนได้จากหน้า YearPickerPage เท่านั้น (ตามที่คุณต้องการ)
   /// - หน้าอื่น ๆ แค่อ่านค่าเดียวกัน => theme จะ “เชื่อมกัน” ทั้งแอป
@@ -164,14 +179,14 @@ class AppTheme {
       brightness: Brightness.dark,
       fontFamily: _fontFamily(locale),
 
-      scaffoldBackgroundColor: AppColors.dark,
+      scaffoldBackgroundColor: darkBluePremium,
 
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.blue500,
         brightness: Brightness.dark,
         primary: AppColors.blue200,
         secondary: AppColors.blue300,
-        surface: AppColors.dark,
+        surface: darkBluePremium,
       ),
 
       textTheme: textTheme,

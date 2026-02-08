@@ -3,8 +3,19 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
+
 import '../calendar/calendar_page.dart';
 import '../saving/saving_page.dart';
+
+import '../contact/contact_page.dart';
+import '../attendance/attendance_page.dart';
+import '../news/news_page.dart';
+import '../participant/participant_page.dart';
+import '../gallery/gallery_page.dart';
+import '../appointment/appointment_page.dart';
+import '../homework/homework_page.dart';
+import '../task/task_page.dart';
+import '../report/report_page.dart';
 
 class ExplorePage extends StatelessWidget {
   const ExplorePage({super.key});
@@ -31,41 +42,40 @@ class ExplorePage extends StatelessWidget {
     // ========= Saving demo data (5 rows) =========
     final savingRows = _SavingDemo.build();
 
-    // 4 cards
+    // ========= Attendance preview (latest check-in) =========
+    final attendancePreview = _AttendancePreview.fromRows(
+      _AttendanceDemo.build(),
+    );
+
+    // 4 cards (order MUST match UI)
+    // ✅ Swapped: Attendance <-> Contact
     final projects = <_ProjectCard>[
       _ProjectCard(
         id: 'calendar',
-        dateLabel: _todayLabel(),
         title: 'Calendar',
-        subtitle: 'Schedule',
         icon: Icons.calendar_month_rounded,
         progress: 0.56,
         primary: true,
       ),
       _ProjectCard(
         id: 'saving',
-        dateLabel: _todayLabel(),
         title: 'Saving',
-        subtitle: 'Fees',
         icon: Icons.savings_rounded,
         progress: 0.87,
-        savingRows: savingRows, // ✅ show เงินเข้า/เงินออก list (5 rows)
-      ),
-      _ProjectCard(
-        id: 'contact',
-        dateLabel: _todayLabel(),
-        title: 'Contact',
-        subtitle: 'School',
-        icon: Icons.support_agent_rounded,
-        progress: 0.46,
+        savingRows: savingRows,
       ),
       _ProjectCard(
         id: 'attendance',
-        dateLabel: _todayLabel(),
         title: 'Attendance',
-        subtitle: 'Track',
         icon: Icons.fact_check_rounded,
         progress: 0.24,
+        attendancePreview: attendancePreview,
+      ),
+      _ProjectCard(
+        id: 'contact',
+        title: 'Contact',
+        icon: Icons.support_agent_rounded,
+        progress: 0.46,
       ),
     ];
 
@@ -171,32 +181,8 @@ class ExplorePage extends StatelessWidget {
                                       border: border,
                                       shadow: shadow,
                                       item: projects[0],
-                                      // ✅ Calendar -> CalendarPage
                                       onTap: () => Navigator.of(context).push(
-                                        PageRouteBuilder(
-                                          transitionDuration: 260.ms,
-                                          reverseTransitionDuration: 220.ms,
-                                          pageBuilder: (_, __, ___) =>
-                                              const CalendarPage(),
-                                          transitionsBuilder:
-                                              (_, anim, __, child) {
-                                                final fade = CurvedAnimation(
-                                                  parent: anim,
-                                                  curve: Curves.easeOut,
-                                                );
-                                                final slide = Tween<Offset>(
-                                                  begin: const Offset(0, 0.02),
-                                                  end: Offset.zero,
-                                                ).animate(fade);
-                                                return FadeTransition(
-                                                  opacity: fade,
-                                                  child: SlideTransition(
-                                                    position: slide,
-                                                    child: child,
-                                                  ),
-                                                );
-                                              },
-                                        ),
+                                        _smoothRoute(const CalendarPage()),
                                       ),
                                     )
                                     .animate(delay: 80.ms)
@@ -218,33 +204,9 @@ class ExplorePage extends StatelessWidget {
                                       border: border,
                                       shadow: shadow,
                                       item: projects[1],
-                                      // ✅ Calendar -> CalendarPage
-                                      onTap: () => Navigator.of(context).push(
-                                        PageRouteBuilder(
-                                          transitionDuration: 260.ms,
-                                          reverseTransitionDuration: 220.ms,
-                                          pageBuilder: (_, __, ___) =>
-                                              const SavingPage(),
-                                          transitionsBuilder:
-                                              (_, anim, __, child) {
-                                                final fade = CurvedAnimation(
-                                                  parent: anim,
-                                                  curve: Curves.easeOut,
-                                                );
-                                                final slide = Tween<Offset>(
-                                                  begin: const Offset(0, 0.02),
-                                                  end: Offset.zero,
-                                                ).animate(fade);
-                                                return FadeTransition(
-                                                  opacity: fade,
-                                                  child: SlideTransition(
-                                                    position: slide,
-                                                    child: child,
-                                                  ),
-                                                );
-                                              },
-                                        ),
-                                      ),
+                                      onTap: () => Navigator.of(
+                                        context,
+                                      ).push(_smoothRoute(const SavingPage())),
                                     )
                                     .animate(delay: 140.ms)
                                     .fadeIn(duration: 240.ms)
@@ -271,12 +233,10 @@ class ExplorePage extends StatelessWidget {
                                       baseBg: cardBg,
                                       border: border,
                                       shadow: shadow,
-                                      item: projects[2],
-                                      onTap: () => _openFeature(
-                                        context,
-                                        title: projects[2].title,
-                                        subtitle: projects[2].subtitle,
-                                        icon: projects[2].icon,
+                                      item:
+                                          projects[2], // ✅ Attendance (swapped)
+                                      onTap: () => Navigator.of(context).push(
+                                        _smoothRoute(const AttendancePage()),
                                       ),
                                     )
                                     .animate(delay: 200.ms)
@@ -297,13 +257,10 @@ class ExplorePage extends StatelessWidget {
                                       baseBg: cardBg,
                                       border: border,
                                       shadow: shadow,
-                                      item: projects[3],
-                                      onTap: () => _openFeature(
+                                      item: projects[3], // ✅ Contact (swapped)
+                                      onTap: () => Navigator.of(
                                         context,
-                                        title: projects[3].title,
-                                        subtitle: projects[3].subtitle,
-                                        icon: projects[3].icon,
-                                      ),
+                                      ).push(_smoothRoute(const ContactPage())),
                                     )
                                     .animate(delay: 260.ms)
                                     .fadeIn(duration: 240.ms)
@@ -337,12 +294,47 @@ class ExplorePage extends StatelessWidget {
                           bg: cardBg,
                           shadow: shadow,
                           items: mini,
-                          onTap: (m) => _openFeature(
-                            context,
-                            title: m.title,
-                            subtitle: "Coming soon",
-                            icon: m.icon,
-                          ),
+                          onTap: (m) {
+                            switch (m.id) {
+                              case 'news':
+                                Navigator.of(
+                                  context,
+                                ).push(_smoothRoute(const NewsPage()));
+                                break;
+                              case 'participant':
+                                Navigator.of(
+                                  context,
+                                ).push(_smoothRoute(const ParticipantPage()));
+                                break;
+                              case 'gallery':
+                                Navigator.of(
+                                  context,
+                                ).push(_smoothRoute(const GalleryPage()));
+                                break;
+                              case 'appointment':
+                                Navigator.of(
+                                  context,
+                                ).push(_smoothRoute(const AppointmentPage()));
+                                break;
+                              case 'homework':
+                                Navigator.of(
+                                  context,
+                                ).push(_smoothRoute(const HomeworkPage()));
+                                break;
+                              case 'task':
+                                Navigator.of(
+                                  context,
+                                ).push(_smoothRoute(const TaskPage()));
+                                break;
+                              case 'report':
+                                Navigator.of(
+                                  context,
+                                ).push(_smoothRoute(const ReportPage()));
+                                break;
+                              default:
+                                break;
+                            }
+                          },
                         )
                         .animate()
                         .fadeIn(duration: 220.ms, delay: 120.ms)
@@ -352,38 +344,6 @@ class ExplorePage extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  static String _todayLabel() {
-    final now = DateTime.now();
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return "${months[now.month - 1]} ${now.day}, ${now.year}";
-  }
-
-  static void _openFeature(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-  }) {
-    Navigator.of(context).push(
-      _smoothRoute(
-        FeaturePlaceholderPage(title: title, subtitle: subtitle, icon: icon),
-      ),
     );
   }
 
@@ -409,29 +369,26 @@ class ExplorePage extends StatelessWidget {
 }
 
 // =====================
-// Project cards
+// Project cards (subtitle/dateLabel removed)
 // =====================
 class _ProjectCard {
   final String id;
-  final String dateLabel;
   final String title;
-  final String subtitle;
   final IconData icon;
   final double progress;
   final bool primary;
 
-  // ✅ for Saving card
   final List<_SavingRow>? savingRows;
+  final _AttendancePreview? attendancePreview;
 
   const _ProjectCard({
     required this.id,
-    required this.dateLabel,
     required this.title,
-    required this.subtitle,
     required this.icon,
     required this.progress,
     this.primary = false,
     this.savingRows,
+    this.attendancePreview,
   });
 }
 
@@ -470,6 +427,9 @@ class _ProjectTileState extends State<_ProjectTile> {
     final isSaving =
         widget.item.id == "saving" &&
         (widget.item.savingRows?.isNotEmpty ?? false);
+
+    final isAttendance =
+        widget.item.id == "attendance" && widget.item.attendancePreview != null;
 
     final pad = widget.compact
         ? (widget.smallRow ? 10.0 : 12.0)
@@ -511,12 +471,6 @@ class _ProjectTileState extends State<_ProjectTile> {
               ? AppColors.grayUltraLight.withOpacity(.65)
               : AppColors.slate.withOpacity(.60));
 
-    final subColor = primary
-        ? Colors.white.withOpacity(.85)
-        : (widget.isDark
-              ? AppColors.grayUltraLight.withOpacity(.78)
-              : AppColors.blue500.withOpacity(.62));
-
     // Calendar surface
     final calSurface = primary
         ? Colors.white.withOpacity(.10)
@@ -525,19 +479,6 @@ class _ProjectTileState extends State<_ProjectTile> {
               : AppColors.slate.withOpacity(.06));
 
     final calBorder = primary
-        ? Colors.white.withOpacity(.16)
-        : (widget.isDark
-              ? Colors.white.withOpacity(.10)
-              : AppColors.slate.withOpacity(.14));
-
-    // Saving list surface
-    final listSurface = primary
-        ? Colors.white.withOpacity(.10)
-        : (widget.isDark
-              ? Colors.white.withOpacity(.06)
-              : AppColors.slate.withOpacity(.06));
-
-    final listBorder = primary
         ? Colors.white.withOpacity(.16)
         : (widget.isDark
               ? Colors.white.withOpacity(.10)
@@ -577,21 +518,10 @@ class _ProjectTileState extends State<_ProjectTile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // top row
+                // top row (dateLabel removed)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (!isCalendar)
-                      Text(
-                        widget.item.dateLabel,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: widget.compact ? 10.6 : 11.5,
-                          color: smallColor,
-                        ),
-                      )
-                    else
-                      const SizedBox.shrink(),
+                    const Spacer(),
                     Icon(Icons.more_vert_rounded, size: 18, color: smallColor),
                   ],
                 ),
@@ -632,20 +562,7 @@ class _ProjectTileState extends State<_ProjectTile> {
                     ),
                   ),
                 ] else if (isSaving) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    widget.item.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: widget.compact ? 11.8 : 12.5,
-                      color: subColor,
-                    ),
-                  ),
                   const SizedBox(height: 10),
-
-                  // ✅ 5 rows เงินเข้า/เงินออก เหมือนรูป
                   Expanded(
                     child: _SavingMiniTable(
                       compact: widget.compact,
@@ -653,18 +570,21 @@ class _ProjectTileState extends State<_ProjectTile> {
                       rows: widget.item.savingRows!,
                     ),
                   ),
-                ] else ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.item.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: widget.compact ? 11.8 : 12.5,
-                      color: subColor,
-                    ),
+                ] else if (isAttendance) ...[
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child:
+                        _AttendancePreviewCard(
+                              compact: widget.compact,
+                              isDark: widget.isDark,
+                              primary: primary,
+                              preview: widget.item.attendancePreview!,
+                            )
+                            .animate()
+                            .fadeIn(duration: 180.ms)
+                            .slideY(begin: .06, end: 0, duration: 180.ms),
                   ),
+                ] else ...[
                   const Spacer(),
                   Text(
                     "Progress",
@@ -711,9 +631,269 @@ class _ProjectTileState extends State<_ProjectTile> {
   }
 }
 
-/// ✅ Saving mini table: Date | In | Out
-/// - Auto fit height (avoid bottom overflow)
-/// - Show up to 5 rows but reduce rows if space is small
+// =====================
+// Attendance preview widget
+// =====================
+class _AttendancePreviewCard extends StatelessWidget {
+  final bool compact;
+  final bool isDark;
+  final bool primary;
+  final _AttendancePreview preview;
+
+  const _AttendancePreviewCard({
+    required this.compact,
+    required this.isDark,
+    required this.primary,
+    required this.preview,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const green = Color(0xFF22C55E);
+    const red = Color(0xFFEF4444);
+
+    final surface = primary
+        ? Colors.white.withOpacity(.10)
+        : (isDark
+              ? Colors.white.withOpacity(.06)
+              : AppColors.slate.withOpacity(.06));
+
+    final border = primary
+        ? Colors.white.withOpacity(.16)
+        : (isDark
+              ? Colors.white.withOpacity(.10)
+              : AppColors.slate.withOpacity(.14));
+
+    final label = primary
+        ? Colors.white.withOpacity(.78)
+        : (isDark
+              ? Colors.white.withOpacity(.70)
+              : AppColors.slate.withOpacity(.75));
+
+    final value = primary
+        ? Colors.white
+        : (isDark ? Colors.white : AppColors.blue500);
+
+    final sub = primary
+        ? Colors.white.withOpacity(.84)
+        : (isDark
+              ? Colors.white.withOpacity(.82)
+              : AppColors.blue500.withOpacity(.70));
+
+    final fsLabel = compact ? 11.0 : 12.0;
+    final fsValue = compact ? 13.5 : 14.5;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: border),
+      ),
+      child: preview.hasCheckIn
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.history_rounded, size: 16, color: label),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        "Latest check-in",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: fsLabel,
+                          color: label,
+                        ),
+                      ),
+                    ),
+                    if (preview.isLate)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: red.withOpacity(isDark ? .18 : .12),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: red.withOpacity(.55)),
+                        ),
+                        child: const Text(
+                          "Late",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11.5,
+                            color: red,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.event_available_rounded,
+                            size: 16,
+                            color: sub,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            preview.dateText,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: fsValue,
+                              color: value,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time_rounded, size: 16, color: sub),
+                        const SizedBox(width: 6),
+                        Text(
+                          preview.timeText,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: fsValue,
+                            color: value,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "Check-in ${preview.timeText}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: compact ? 12.2 : 13.0,
+                    color: green,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 18, color: label),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "No check-in record yet",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: fsLabel,
+                      color: label,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+// =====================
+// Attendance preview models (demo)
+// =====================
+class _AttRow {
+  final DateTime date;
+  final TimeOfDay? checkIn;
+  final String reason;
+  final bool come;
+
+  const _AttRow({
+    required this.date,
+    required this.checkIn,
+    required this.reason,
+    required this.come,
+  });
+
+  bool get isLate {
+    if (reason.trim().toLowerCase() == "late") return true;
+    final t = checkIn;
+    if (t == null) return false;
+    return (t.hour > 8) || (t.hour == 8 && t.minute > 0);
+  }
+}
+
+class _AttendancePreview {
+  final bool hasCheckIn;
+  final String dateText;
+  final String timeText;
+  final bool isLate;
+
+  const _AttendancePreview({
+    required this.hasCheckIn,
+    required this.dateText,
+    required this.timeText,
+    required this.isLate,
+  });
+
+  static _AttendancePreview fromRows(List<_AttRow> rows) {
+    final withCheck = rows.where((e) => e.come && e.checkIn != null).toList();
+    if (withCheck.isEmpty) {
+      return const _AttendancePreview(
+        hasCheckIn: false,
+        dateText: "",
+        timeText: "",
+        isLate: false,
+      );
+    }
+
+    withCheck.sort((a, b) => b.date.compareTo(a.date));
+    final latest = withCheck.first;
+
+    final dateText = DateFormat("yyyy/MM/dd").format(latest.date);
+    final t = latest.checkIn!;
+    final hh = t.hour.toString().padLeft(2, "0");
+    final mm = t.minute.toString().padLeft(2, "0");
+
+    return _AttendancePreview(
+      hasCheckIn: true,
+      dateText: dateText,
+      timeText: "$hh:$mm",
+      isLate: latest.isLate,
+    );
+  }
+}
+
+class _AttendanceDemo {
+  static List<_AttRow> build() {
+    final base = DateTime.now();
+    return [
+      _AttRow(
+        date: base,
+        checkIn: const TimeOfDay(hour: 7, minute: 55),
+        reason: "Normal",
+        come: true,
+      ),
+      _AttRow(
+        date: base.subtract(const Duration(days: 1)),
+        checkIn: const TimeOfDay(hour: 8, minute: 20),
+        reason: "Late",
+        come: true,
+      ),
+      _AttRow(
+        date: base.subtract(const Duration(days: 2)),
+        checkIn: null,
+        reason: "Sick",
+        come: false,
+      ),
+    ];
+  }
+}
+
+// =====================
+// Saving mini table
+// =====================
 class _SavingMiniTable extends StatelessWidget {
   final bool compact;
   final bool isDark;
@@ -727,19 +907,16 @@ class _SavingMiniTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const inColor = Color(0xFF22C55E); // green
-    const outColor = Color(0xFFEF4444); // red
+    const inColor = Color(0xFF22C55E);
+    const outColor = Color(0xFFEF4444);
 
     return LayoutBuilder(
       builder: (context, c) {
-        // ✅ available height inside card area
         final maxH = c.maxHeight;
 
-        // dynamic sizes (smaller when compact)
         final headerH = compact ? 36.0 : 40.0;
         final rowH = compact ? 30.0 : 34.0;
 
-        // some safe padding inside table
         const topPad = 8.0;
         const bottomPad = 8.0;
 
@@ -748,7 +925,6 @@ class _SavingMiniTable extends StatelessWidget {
           double.infinity,
         );
 
-        // ✅ calculate how many rows can fit (min 3, max 5)
         int canFit = (availableForRows / rowH).floor();
         canFit = canFit.clamp(3, 5);
 
@@ -784,7 +960,7 @@ class _SavingMiniTable extends StatelessWidget {
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min, // ✅ do not force extra height
+              mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
                   height: headerH,
@@ -835,14 +1011,11 @@ class _SavingMiniTable extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 Divider(
                   height: 1,
                   thickness: 1,
                   color: Colors.white.withOpacity(.10),
                 ),
-
-                // ✅ Rows (auto-fit count)
                 for (int i = 0; i < show.length; i++)
                   Container(
                         height: rowH,
@@ -912,8 +1085,8 @@ class _SavingMiniTable extends StatelessWidget {
 
 class _SavingRow {
   final DateTime date;
-  final int inAmount; // เงินเข้า
-  final int outAmount; // เงินออก (เก็บเป็นบวก)
+  final int inAmount;
+  final int outAmount;
 
   const _SavingRow({
     required this.date,
@@ -922,7 +1095,6 @@ class _SavingRow {
   });
 
   String get dateText => DateFormat('yyyy/MM/dd').format(date);
-
   String get inText => inAmount > 0 ? "+${_fmt(inAmount)}" : "";
   String get outText => outAmount > 0 ? "-${_fmt(outAmount)}" : "";
 
@@ -942,7 +1114,6 @@ class _SavingDemo {
   static List<_SavingRow> build() {
     final base = DateTime(2025, 1, 1);
 
-    // ตัวอย่างเหมือนรูป
     final deltas = <int>[
       100000,
       -50000,
@@ -968,12 +1139,12 @@ class _SavingDemo {
       );
     }
 
-    return rows.take(5).toList(); // ✅ show only 5 rows
+    return rows.take(5).toList();
   }
 }
 
 // =====================
-// Premium month calendar (unchanged)
+// Premium month calendar
 // =====================
 class _PremiumMonthCalendar extends StatelessWidget {
   final bool compact;
@@ -1128,35 +1299,6 @@ class _PremiumMonthCalendar extends StatelessWidget {
                   ),
                   selectedDayPredicate: (_) => false,
                   onDaySelected: (_, __) {},
-                  calendarBuilders: CalendarBuilders(
-                    todayBuilder: (context, day, focusedDay) {
-                      return Container(
-                        margin: EdgeInsets.all(m),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: todayFill,
-                          border: Border.all(color: todayBorder, width: 1.8),
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 16,
-                              offset: const Offset(0, 8),
-                              color: Colors.black.withOpacity(.22),
-                            ),
-                          ],
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          "${day.day}",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: dayFs,
-                            color: Colors.white,
-                            height: 1.0,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
                 ),
               ),
             ),
@@ -1420,84 +1562,6 @@ class _MiniTileState extends State<_MiniTile> {
           ),
         );
       },
-    );
-  }
-}
-
-// =====================
-// Placeholder page
-// =====================
-class FeaturePlaceholderPage extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-
-  const FeaturePlaceholderPage({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context);
-    final isDark = t.brightness == Brightness.dark;
-    final cs = t.colorScheme;
-
-    final titleColor = isDark ? Colors.white : AppColors.blue500;
-    final muted = isDark
-        ? AppColors.grayUltraLight.withOpacity(.80)
-        : AppColors.blue500.withOpacity(.62);
-    final cardBg = isDark ? AppColors.blue500.withOpacity(.10) : cs.surface;
-    final border = isDark
-        ? Colors.white.withOpacity(.10)
-        : AppColors.slate.withOpacity(.12);
-
-    return Scaffold(
-      backgroundColor: t.scaffoldBackgroundColor,
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child:
-            Container(
-                  width: 320,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: border),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon, size: 46, color: titleColor),
-                      const SizedBox(height: 12),
-                      Text(
-                        title,
-                        style: t.textTheme.titleLarge?.copyWith(
-                          color: titleColor,
-                          fontWeight: FontWeight.w900,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        subtitle,
-                        style: t.textTheme.bodyMedium?.copyWith(color: muted),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        "Replace this page with real feature UI.",
-                        style: t.textTheme.bodySmall?.copyWith(color: muted),
-                      ),
-                    ],
-                  ),
-                )
-                .animate()
-                .fadeIn(duration: 220.ms)
-                .slideY(begin: .08, end: 0, duration: 220.ms),
-      ),
     );
   }
 }

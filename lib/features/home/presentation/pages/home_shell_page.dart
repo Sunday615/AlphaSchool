@@ -132,11 +132,11 @@ class _HomeShellPageState extends State<HomeShellPage>
                   label: "ຫ້ອງຮຽນ",
                 ),
                 AppBottomNavItem(
-                  icon: FontAwesomeIcons.trophy,
+                  icon: FontAwesomeIcons.chartLine,
                   label: "ຜົນການຮຽນ",
                 ),
                 AppBottomNavItem(
-                  icon: FontAwesomeIcons.moneyBill1Wave,
+                  icon: FontAwesomeIcons.sackXmark,
                   label: "ຄ່າທຳນຽມ",
                 ),
               ];
