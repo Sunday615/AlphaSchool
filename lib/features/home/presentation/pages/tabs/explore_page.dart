@@ -6,7 +6,6 @@ import '../../../../../core/theme/app_colors.dart';
 
 import '../calendar/calendar_page.dart';
 import '../saving/saving_page.dart';
-
 import '../contact/contact_page.dart';
 import '../attendance/attendance_page.dart';
 import '../news/news_page.dart';
@@ -47,8 +46,13 @@ class ExplorePage extends StatelessWidget {
       _AttendanceDemo.build(),
     );
 
+    // ========= Contact quick preview (Phone / WhatsApp) =========
+    final qc = _QuickContactPreview(
+      phone: SchoolContactInfo.demo.phone,
+      whatsapp: SchoolContactInfo.demo.whatsapp,
+    );
+
     // 4 cards (order MUST match UI)
-    // ✅ Swapped: Attendance <-> Contact
     final projects = <_ProjectCard>[
       _ProjectCard(
         id: 'calendar',
@@ -76,6 +80,7 @@ class ExplorePage extends StatelessWidget {
         title: 'Contact',
         icon: Icons.support_agent_rounded,
         progress: 0.46,
+        quickContact: qc, // ✅ show quick contact (2 fields)
       ),
     ];
 
@@ -233,8 +238,7 @@ class ExplorePage extends StatelessWidget {
                                       baseBg: cardBg,
                                       border: border,
                                       shadow: shadow,
-                                      item:
-                                          projects[2], // ✅ Attendance (swapped)
+                                      item: projects[2], // Attendance
                                       onTap: () => Navigator.of(context).push(
                                         _smoothRoute(const AttendancePage()),
                                       ),
@@ -257,7 +261,7 @@ class ExplorePage extends StatelessWidget {
                                       baseBg: cardBg,
                                       border: border,
                                       shadow: shadow,
-                                      item: projects[3], // ✅ Contact (swapped)
+                                      item: projects[3], // Contact
                                       onTap: () => Navigator.of(
                                         context,
                                       ).push(_smoothRoute(const ContactPage())),
@@ -369,7 +373,7 @@ class ExplorePage extends StatelessWidget {
 }
 
 // =====================
-// Project cards (subtitle/dateLabel removed)
+// Project cards
 // =====================
 class _ProjectCard {
   final String id;
@@ -380,6 +384,7 @@ class _ProjectCard {
 
   final List<_SavingRow>? savingRows;
   final _AttendancePreview? attendancePreview;
+  final _QuickContactPreview? quickContact;
 
   const _ProjectCard({
     required this.id,
@@ -389,6 +394,7 @@ class _ProjectCard {
     this.primary = false,
     this.savingRows,
     this.attendancePreview,
+    this.quickContact,
   });
 }
 
@@ -423,13 +429,15 @@ class _ProjectTileState extends State<_ProjectTile> {
   @override
   Widget build(BuildContext context) {
     final primary = widget.item.primary;
+
     final isCalendar = widget.item.id == "calendar";
     final isSaving =
         widget.item.id == "saving" &&
         (widget.item.savingRows?.isNotEmpty ?? false);
-
     final isAttendance =
         widget.item.id == "attendance" && widget.item.attendancePreview != null;
+    final isContact =
+        widget.item.id == "contact" && widget.item.quickContact != null;
 
     final pad = widget.compact
         ? (widget.smallRow ? 10.0 : 12.0)
@@ -460,7 +468,6 @@ class _ProjectTileState extends State<_ProjectTile> {
     final titleColor = primary
         ? Colors.white
         : (widget.isDark ? Colors.white : AppColors.blue500);
-
     final iconColor = primary
         ? Colors.white
         : (widget.isDark ? Colors.white : AppColors.blue500);
@@ -518,7 +525,7 @@ class _ProjectTileState extends State<_ProjectTile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // top row (dateLabel removed)
+                // top row
                 Row(
                   children: [
                     const Spacer(),
@@ -584,6 +591,20 @@ class _ProjectTileState extends State<_ProjectTile> {
                             .fadeIn(duration: 180.ms)
                             .slideY(begin: .06, end: 0, duration: 180.ms),
                   ),
+                ] else if (isContact) ...[
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child:
+                        _QuickContactCard(
+                              compact: widget.compact,
+                              isDark: widget.isDark,
+                              primary: primary,
+                              data: widget.item.quickContact!,
+                            )
+                            .animate()
+                            .fadeIn(duration: 180.ms)
+                            .slideY(begin: .06, end: 0, duration: 180.ms),
+                  ),
                 ] else ...[
                   const Spacer(),
                   Text(
@@ -627,6 +648,195 @@ class _ProjectTileState extends State<_ProjectTile> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// =====================
+// Quick contact preview (Phone / WhatsApp only)
+// =====================
+class _QuickContactPreview {
+  final String phone;
+  final String whatsapp;
+
+  const _QuickContactPreview({required this.phone, required this.whatsapp});
+}
+
+class _QuickContactCard extends StatelessWidget {
+  final bool compact;
+  final bool isDark;
+  final bool primary;
+  final _QuickContactPreview data;
+
+  const _QuickContactCard({
+    required this.compact,
+    required this.isDark,
+    required this.primary,
+    required this.data,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const green = Color(0xFF22C55E);
+
+    final surface = primary
+        ? Colors.white.withOpacity(.10)
+        : (isDark
+              ? Colors.white.withOpacity(.06)
+              : AppColors.slate.withOpacity(.06));
+
+    final border = primary
+        ? Colors.white.withOpacity(.16)
+        : (isDark
+              ? Colors.white.withOpacity(.10)
+              : AppColors.slate.withOpacity(.14));
+
+    final divider = primary
+        ? Colors.white.withOpacity(.12)
+        : (isDark
+              ? Colors.white.withOpacity(.10)
+              : AppColors.slate.withOpacity(.12));
+
+    final pad = compact ? 12.0 : 14.0;
+
+    return Container(
+      padding: EdgeInsets.all(pad),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _QCRowModern(
+            compact: compact,
+            primary: primary,
+            isDark: isDark,
+            label: "Phone",
+            value: data.phone,
+            icon: Icons.phone_rounded,
+            accent: green,
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: compact ? 44 : 48),
+            child: Divider(height: 14, thickness: 1, color: divider),
+          ),
+          _QCRowModern(
+            compact: compact,
+            primary: primary,
+            isDark: isDark,
+            label: "WhatsApp",
+            value: data.whatsapp,
+            icon: Icons.message_rounded,
+            accent: green,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QCRowModern extends StatelessWidget {
+  final bool compact;
+  final bool isDark;
+  final bool primary;
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color accent;
+
+  const _QCRowModern({
+    required this.compact,
+    required this.isDark,
+    required this.primary,
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = value.trim().isNotEmpty;
+
+    final labelC = primary
+        ? Colors.white.withOpacity(.80)
+        : (isDark
+              ? Colors.white.withOpacity(.72)
+              : AppColors.blue500.withOpacity(.62));
+
+    final valueC = primary
+        ? Colors.white
+        : (isDark ? Colors.white : AppColors.blue500);
+
+    final iconC = primary ? Colors.white : accent;
+
+    final bubbleBg = primary
+        ? Colors.white.withOpacity(.16)
+        : (isDark ? Colors.white.withOpacity(.08) : accent.withOpacity(.12));
+
+    final bubbleBorder = primary
+        ? Colors.white.withOpacity(.22)
+        : (isDark ? Colors.white.withOpacity(.12) : accent.withOpacity(.22));
+
+    final iconSize = compact ? 16.0 : 18.0;
+    final bubble = compact ? 34.0 : 38.0;
+
+    final labelFs = compact ? 11.0 : 11.8;
+    final valueFs = compact ? 12.6 : 13.4;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: bubble,
+          height: bubble,
+          decoration: BoxDecoration(
+            color: bubbleBg,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: bubbleBorder),
+          ),
+          child: Icon(icon, color: iconC, size: iconSize),
+        ),
+        const SizedBox(width: 10),
+
+        // ✅ Flexible กัน overflow
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: labelFs,
+                  letterSpacing: .2,
+                  color: labelC,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                hasValue ? value : "-",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: valueFs,
+                  color: hasValue ? valueC : labelC.withOpacity(.75),
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -924,7 +1134,6 @@ class _SavingMiniTable extends StatelessWidget {
           0.0,
           double.infinity,
         );
-
         int canFit = (availableForRows / rowH).floor();
         canFit = canFit.clamp(3, 5);
 
@@ -932,7 +1141,6 @@ class _SavingMiniTable extends StatelessWidget {
 
         final fsDate = compact ? 10.6 : 11.4;
         final fsMoney = compact ? 11.8 : 12.6;
-
         final stripe = Colors.white.withOpacity(.04);
 
         return ClipRRect(

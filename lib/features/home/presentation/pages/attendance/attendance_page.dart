@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_theme.dart';
 
@@ -12,6 +13,8 @@ class AttendancePage extends StatefulWidget {
 }
 
 class _AttendancePageState extends State<AttendancePage> {
+  static const double _maxWidth = 680;
+
   // ✅ Students (Name + ID)
   final List<_StudentInfo> _students = const [
     _StudentInfo(id: "S001", name: "Khampheng S."),
@@ -26,7 +29,7 @@ class _AttendancePageState extends State<AttendancePage> {
     "S002": _demoRowsB(),
   };
 
-  // ✅ NEW: filter when tap stat cards
+  // ✅ filter when tap stat cards
   _AttendStatus? _filter; // null = all
 
   @override
@@ -62,29 +65,59 @@ class _AttendancePageState extends State<AttendancePage> {
                   ? allRows
                   : allRows.where((e) => e.status == _filter).toList();
 
-              final textPrimary = isDark ? Colors.white : AppColors.blue500;
+              // ✅ Clean palette (like ContactPage)
+              final textPrimary = isDark
+                  ? Colors.white
+                  : const Color(0xFF111827);
               final textMuted = isDark
                   ? Colors.white.withOpacity(.72)
-                  : AppColors.blue500.withOpacity(.62);
+                  : const Color(0xFF6B7280);
 
-              final cardBg = isDark ? AppTheme.darkBluePremium : cs.surface;
+              final cardColor = isDark
+                  ? const Color(0xFF121924).withOpacity(.92)
+                  : Colors.white;
+
               final border = isDark
-                  ? Colors.white.withOpacity(.10)
-                  : AppColors.slate.withOpacity(.12);
+                  ? Colors.white.withOpacity(.08)
+                  : Colors.black.withOpacity(.06);
 
-              final shadow = Colors.black.withOpacity(isDark ? .25 : .08);
+              final shadow = Colors.black.withOpacity(isDark ? .32 : .08);
 
-              final gradient = isDark
-                  ? AppTheme.premiumDarkGradient
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.blue500.withOpacity(.12),
-                        Colors.white,
-                        AppColors.blue400.withOpacity(.06),
-                      ],
-                    );
+              // ✅ Clean white/grey modern background
+              final bg = Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: isDark
+                              ? const [Color(0xFF0F141B), Color(0xFF0B0F14)]
+                              : const [Color(0xFFF7F8FA), Color(0xFFFFFFFF)],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: const Alignment(0.0, -0.95),
+                            radius: 1.25,
+                            colors: [
+                              cs.primary.withOpacity(isDark ? .10 : .08),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+
               // counts always from ALL rows (not filtered)
               final comeCount = allRows
                   .where((e) => e.status == _AttendStatus.comeIn)
@@ -94,309 +127,258 @@ class _AttendancePageState extends State<AttendancePage> {
                   .length;
 
               return Scaffold(
-                backgroundColor: t.scaffoldBackgroundColor,
-                extendBodyBehindAppBar: true,
-                appBar: AppBar(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  foregroundColor: isDark ? Colors.white : AppColors.blue500,
-                  title: const Text("Attendance"),
-                  centerTitle: true,
-                ),
-                body: Container(
-                  decoration: BoxDecoration(gradient: gradient),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-                      child: Column(
-                        children: [
-                          // ===== Header / Summary =====
-                          Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: cardBg.withOpacity(isDark ? .88 : 1),
-                                  borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(color: border),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 10),
-                                      color: shadow,
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Track student attendance",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 16,
-                                        color: textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "Student: ${student.name}  •  ID: ${student.id}",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 12.5,
-                                        color: textMuted,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-
-                                    // ✅ Two full-width cards (tap to filter)
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child:
-                                              _StatCard(
-                                                    isDark: isDark,
-                                                    title: "Come in",
-                                                    value: comeCount,
-                                                    icon: Icons
-                                                        .check_circle_rounded,
-                                                    color: const Color(
-                                                      0xFF22C55E,
-                                                    ),
-                                                    selected:
-                                                        _filter ==
-                                                        _AttendStatus.comeIn,
-                                                    onTap: () => _toggleFilter(
-                                                      _AttendStatus.comeIn,
-                                                    ),
-                                                  )
-                                                  .animate()
-                                                  .fadeIn(duration: 220.ms)
-                                                  .slideY(
-                                                    begin: .06,
-                                                    end: 0,
-                                                    duration: 220.ms,
-                                                    curve: Curves.easeOut,
-                                                  ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child:
-                                              _StatCard(
-                                                    isDark: isDark,
-                                                    title: "Not come",
-                                                    value: absentCount,
-                                                    icon: Icons.cancel_rounded,
-                                                    color: const Color(
-                                                      0xFFEF4444,
-                                                    ),
-                                                    selected:
-                                                        _filter ==
-                                                        _AttendStatus.notCome,
-                                                    onTap: () => _toggleFilter(
-                                                      _AttendStatus.notCome,
-                                                    ),
-                                                  )
-                                                  .animate()
-                                                  .fadeIn(duration: 220.ms)
-                                                  .slideY(
-                                                    begin: .06,
-                                                    end: 0,
-                                                    duration: 220.ms,
-                                                    curve: Curves.easeOut,
-                                                  ),
-                                        ),
-                                      ],
-                                    ),
-
-                                    // ✅ show filter hint + clear
-                                    if (_filter != null) ...[
-                                      const SizedBox(height: 10),
-                                      Row(
-                                            children: [
-                                              Icon(
-                                                Icons.filter_alt_rounded,
-                                                size: 16,
-                                                color: textMuted,
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Expanded(
-                                                child: Text(
-                                                  "Filter: ${_filter == _AttendStatus.comeIn ? "Come in" : "Not come"}",
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w800,
-                                                    fontSize: 12,
-                                                    color: textMuted,
-                                                  ),
-                                                ),
-                                              ),
-                                              TextButton(
-                                                onPressed: () => setState(
-                                                  () => _filter = null,
-                                                ),
-                                                style: TextButton.styleFrom(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 6,
-                                                      ),
-                                                  minimumSize: Size.zero,
-                                                  tapTargetSize:
-                                                      MaterialTapTargetSize
-                                                          .shrinkWrap,
-                                                ),
-                                                child: Text(
-                                                  "Clear",
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w900,
-                                                    color: textPrimary,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                          .animate()
-                                          .fadeIn(duration: 160.ms)
-                                          .slideY(
-                                            begin: .06,
-                                            end: 0,
-                                            duration: 160.ms,
-                                          ),
-                                    ],
-                                  ],
-                                ),
-                              )
-                              .animate()
-                              .fadeIn(duration: 220.ms)
-                              .slideY(begin: .08, end: 0, duration: 220.ms),
-
-                          const SizedBox(height: 12),
-
-                          // ===== Table Card =====
-                          Expanded(
-                            child:
-                                Container(
-                                      decoration: BoxDecoration(
-                                        color: cardBg.withOpacity(
-                                          isDark ? .86 : 1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(22),
-                                        border: Border.all(color: border),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            blurRadius: 18,
-                                            offset: const Offset(0, 10),
-                                            color: shadow,
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(22),
-                                        child: Column(
-                                          children: [
-                                            _TableHeader(
-                                              isDark: isDark,
-                                              border: border,
-                                              textMuted: isDark
-                                                  ? Colors.white.withOpacity(
-                                                      .70,
-                                                    )
-                                                  : AppColors.slate.withOpacity(
-                                                      .85,
-                                                    ),
-                                            ),
-                                            Expanded(
-                                              child: AnimatedSwitcher(
-                                                duration: 220.ms,
-                                                switchInCurve: Curves.easeOut,
-                                                switchOutCurve: Curves.easeOut,
-                                                transitionBuilder:
-                                                    (child, anim) {
-                                                      final fade =
-                                                          CurvedAnimation(
-                                                            parent: anim,
-                                                            curve:
-                                                                Curves.easeOut,
-                                                          );
-                                                      final slide =
-                                                          Tween<Offset>(
-                                                            begin: const Offset(
-                                                              0,
-                                                              .02,
-                                                            ),
-                                                            end: Offset.zero,
-                                                          ).animate(fade);
-                                                      return FadeTransition(
-                                                        opacity: fade,
-                                                        child: SlideTransition(
-                                                          position: slide,
-                                                          child: child,
-                                                        ),
-                                                      );
-                                                    },
-                                                child: rows.isEmpty
-                                                    ? _EmptyState(
-                                                        key: ValueKey(
-                                                          "empty_${_filter}",
-                                                        ),
-                                                        isDark: isDark,
-                                                      )
-                                                    : ListView.separated(
-                                                        key: ValueKey(
-                                                          "list_${_filter}_${rows.length}",
-                                                        ),
-                                                        padding:
-                                                            const EdgeInsets.fromLTRB(
-                                                              10,
-                                                              10,
-                                                              10,
-                                                              12,
-                                                            ),
-                                                        itemCount: rows.length,
-                                                        separatorBuilder:
-                                                            (_, __) =>
-                                                                const SizedBox(
-                                                                  height: 8,
-                                                                ),
-                                                        itemBuilder: (context, i) {
-                                                          return _AttendanceRowTile(
-                                                                isDark: isDark,
-                                                                border: border,
-                                                                row: rows[i],
-                                                              )
-                                                              .animate()
-                                                              .fadeIn(
-                                                                duration:
-                                                                    180.ms,
-                                                                delay:
-                                                                    (35 * i).ms,
-                                                              )
-                                                              .slideY(
-                                                                begin: .06,
-                                                                end: 0,
-                                                                duration:
-                                                                    180.ms,
-                                                                curve: Curves
-                                                                    .easeOut,
-                                                              );
-                                                        },
-                                                      ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                backgroundColor: Colors.transparent,
+                body: Stack(
+                  children: [
+                    bg,
+                    SafeArea(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: _maxWidth,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                            child: Column(
+                              children: [
+                                // ===== Dark blue gradient header box =====
+                                _HeaderGradientBox(
+                                      shadow: shadow,
+                                      title: "Attendance",
+                                      subtitle:
+                                          "Student: ${student.name}  •  ID: ${student.id}",
+                                      onBack: () =>
+                                          Navigator.of(context).maybePop(),
                                     )
                                     .animate()
-                                    .fadeIn(duration: 220.ms, delay: 80.ms)
+                                    .fadeIn(duration: 220.ms)
                                     .slideY(
                                       begin: .08,
                                       end: 0,
                                       duration: 220.ms,
+                                      curve: Curves.easeOut,
                                     ),
+
+                                const SizedBox(height: 12),
+
+                                // ===== Filter + Stats (clean white card) =====
+                                _Panel(
+                                      color: cardColor,
+                                      border: border,
+                                      shadow: shadow,
+                                      padding: const EdgeInsets.all(14),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Text(
+                                            "Track student attendance",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 15.5,
+                                              color: textPrimary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _StatCard(
+                                                  isDark: isDark,
+                                                  title: "Come in",
+                                                  value: comeCount,
+                                                  icon: Icons
+                                                      .check_circle_rounded,
+                                                  color: const Color(
+                                                    0xFF22C55E,
+                                                  ),
+                                                  selected:
+                                                      _filter ==
+                                                      _AttendStatus.comeIn,
+                                                  onTap: () => _toggleFilter(
+                                                    _AttendStatus.comeIn,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: _StatCard(
+                                                  isDark: isDark,
+                                                  title: "Not come",
+                                                  value: absentCount,
+                                                  icon: Icons.cancel_rounded,
+                                                  color: const Color(
+                                                    0xFFEF4444,
+                                                  ),
+                                                  selected:
+                                                      _filter ==
+                                                      _AttendStatus.notCome,
+                                                  onTap: () => _toggleFilter(
+                                                    _AttendStatus.notCome,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          if (_filter != null) ...[
+                                            const SizedBox(height: 10),
+                                            Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.filter_alt_rounded,
+                                                      size: 16,
+                                                      color: textMuted,
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Filter: ${_filter == _AttendStatus.comeIn ? "Come in" : "Not come"}",
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          fontSize: 12,
+                                                          color: textMuted,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () => setState(
+                                                        () => _filter = null,
+                                                      ),
+                                                      style: TextButton.styleFrom(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 10,
+                                                              vertical: 6,
+                                                            ),
+                                                        minimumSize: Size.zero,
+                                                        tapTargetSize:
+                                                            MaterialTapTargetSize
+                                                                .shrinkWrap,
+                                                      ),
+                                                      child: Text(
+                                                        "Clear",
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          color: textPrimary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                                .animate()
+                                                .fadeIn(duration: 160.ms)
+                                                .slideY(begin: .06, end: 0),
+                                          ],
+                                        ],
+                                      ),
+                                    )
+                                    .animate()
+                                    .fadeIn(duration: 220.ms, delay: 40.ms)
+                                    .slideY(begin: .08, end: 0),
+
+                                const SizedBox(height: 12),
+
+                                // ===== Table Card =====
+                                Expanded(
+                                  child: _Panel(
+                                    color: cardColor,
+                                    border: border,
+                                    shadow: shadow,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(22),
+                                      child: Column(
+                                        children: [
+                                          _TableHeader(
+                                            isDark: isDark,
+                                            border: border,
+                                            textMuted: textMuted,
+                                          ),
+                                          Expanded(
+                                            child: AnimatedSwitcher(
+                                              duration: 220.ms,
+                                              switchInCurve: Curves.easeOut,
+                                              switchOutCurve: Curves.easeOut,
+                                              transitionBuilder: (child, anim) {
+                                                final fade = CurvedAnimation(
+                                                  parent: anim,
+                                                  curve: Curves.easeOut,
+                                                );
+                                                final slide = Tween<Offset>(
+                                                  begin: const Offset(0, .02),
+                                                  end: Offset.zero,
+                                                ).animate(fade);
+
+                                                return FadeTransition(
+                                                  opacity: fade,
+                                                  child: SlideTransition(
+                                                    position: slide,
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                              child: rows.isEmpty
+                                                  ? _EmptyState(
+                                                      key: ValueKey(
+                                                        "empty_${_filter}",
+                                                      ),
+                                                      isDark: isDark,
+                                                    )
+                                                  : ListView.separated(
+                                                      key: ValueKey(
+                                                        "list_${_filter}_${rows.length}",
+                                                      ),
+                                                      padding:
+                                                          const EdgeInsets.fromLTRB(
+                                                            10,
+                                                            10,
+                                                            10,
+                                                            12,
+                                                          ),
+                                                      itemCount: rows.length,
+                                                      separatorBuilder:
+                                                          (_, __) =>
+                                                              const SizedBox(
+                                                                height: 8,
+                                                              ),
+                                                      itemBuilder: (context, i) {
+                                                        return _AttendanceRowTile(
+                                                              isDark: isDark,
+                                                              border: border,
+                                                              row: rows[i],
+                                                            )
+                                                            .animate()
+                                                            .fadeIn(
+                                                              duration: 180.ms,
+                                                              delay:
+                                                                  (35 * i).ms,
+                                                            )
+                                                            .slideY(
+                                                              begin: .06,
+                                                              end: 0,
+                                                              duration: 180.ms,
+                                                              curve: Curves
+                                                                  .easeOut,
+                                                            );
+                                                      },
+                                                    ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ).animate().fadeIn(duration: 220.ms, delay: 80.ms).slideY(begin: .08, end: 0),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               );
             },
@@ -483,6 +465,132 @@ class _AttendancePageState extends State<AttendancePage> {
 }
 
 // =====================
+// Header Gradient Box
+// =====================
+class _HeaderGradientBox extends StatelessWidget {
+  final Color shadow;
+  final String title;
+  final String subtitle;
+  final VoidCallback onBack;
+
+  const _HeaderGradientBox({
+    required this.shadow,
+    required this.title,
+    required this.subtitle,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const headerGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF071A33), Color(0xFF0B2B5B), Color(0xFF123B7A)],
+    );
+
+    final t = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        gradient: headerGradient,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withOpacity(.10)),
+        boxShadow: [
+          BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: shadow),
+        ],
+      ),
+      child: Row(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onBack,
+              borderRadius: BorderRadius.circular(14),
+              child: Ink(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withOpacity(.18)),
+                ),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: t.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(.78),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================
+// Clean panel
+// =====================
+class _Panel extends StatelessWidget {
+  final Color color;
+  final Color border;
+  final Color shadow;
+  final EdgeInsetsGeometry? padding;
+  final Widget child;
+
+  const _Panel({
+    required this.color,
+    required this.border,
+    required this.shadow,
+    required this.child,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: border),
+        boxShadow: [
+          BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: shadow),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+// =====================
 // Students model
 // =====================
 class _StudentInfo {
@@ -554,16 +662,36 @@ class _StatCardState extends State<_StatCard> {
 
   @override
   Widget build(BuildContext context) {
-    final titleColor = widget.isDark
-        ? Colors.white.withOpacity(.86)
-        : AppColors.blue500;
-    final valueColor = widget.isDark ? Colors.white : AppColors.blue500;
+    final selected = widget.selected;
 
-    final baseBg = widget.color.withOpacity(widget.isDark ? .14 : .10);
-    final selectedBg = widget.color.withOpacity(widget.isDark ? .24 : .18);
+    // ✅ NEW: highlight selected (green/red bg + border)
+    final bg = selected
+        ? widget.color.withOpacity(widget.isDark ? .28 : .20)
+        : (widget.isDark
+              ? Colors.white.withOpacity(.06)
+              : const Color(0xFFF7F8FA));
 
-    final baseBorder = widget.color.withOpacity(.45);
-    final selectedBorder = widget.color.withOpacity(.85);
+    final borderC = selected
+        ? widget.color.withOpacity(.95)
+        : (widget.isDark
+              ? Colors.white.withOpacity(.12)
+              : Colors.black.withOpacity(.06));
+
+    final titleColor = selected
+        ? Colors.white.withOpacity(.92)
+        : (widget.isDark
+              ? Colors.white.withOpacity(.82)
+              : const Color(0xFF111827));
+
+    final valueColor = selected
+        ? Colors.white
+        : (widget.isDark ? Colors.white : const Color(0xFF111827));
+
+    final iconBubbleBg = selected
+        ? Colors.white.withOpacity(widget.isDark ? .18 : .30)
+        : widget.color.withOpacity(widget.isDark ? .22 : .14);
+
+    final iconColor = selected ? Colors.white : widget.color;
 
     return AnimatedScale(
       scale: _pressed ? 0.985 : 1,
@@ -583,19 +711,16 @@ class _StatCardState extends State<_StatCard> {
             height: 66,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: widget.selected ? selectedBg : baseBg,
+              color: bg,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: widget.selected ? selectedBorder : baseBorder,
-                width: widget.selected ? 1.4 : 1.0,
-              ),
-              boxShadow: widget.selected
+              border: Border.all(color: borderC, width: selected ? 1.4 : 1.0),
+              boxShadow: selected
                   ? [
                       BoxShadow(
                         blurRadius: 18,
                         offset: const Offset(0, 10),
                         color: widget.color.withOpacity(
-                          widget.isDark ? .18 : .14,
+                          widget.isDark ? .20 : .18,
                         ),
                       ),
                     ]
@@ -607,10 +732,10 @@ class _StatCardState extends State<_StatCard> {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: widget.color.withOpacity(widget.isDark ? .22 : .14),
+                    color: iconBubbleBg,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(widget.icon, size: 20, color: widget.color),
+                  child: Icon(widget.icon, size: 20, color: iconColor),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -650,36 +775,29 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF7F8FA);
+    final border = isDark
+        ? Colors.white.withOpacity(.10)
+        : Colors.black.withOpacity(.06);
+
+    final c = isDark ? Colors.white.withOpacity(.78) : const Color(0xFF6B7280);
+
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(.06) : Colors.white,
+          color: bg,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withOpacity(.10)
-                : AppColors.slate.withOpacity(.12),
-          ),
+          border: Border.all(color: border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.info_outline_rounded,
-              color: isDark
-                  ? Colors.white.withOpacity(.70)
-                  : AppColors.blue500.withOpacity(.70),
-            ),
+            Icon(Icons.info_outline_rounded, color: c),
             const SizedBox(width: 10),
             Text(
               "No records found",
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: isDark
-                    ? Colors.white.withOpacity(.82)
-                    : AppColors.blue500,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w900, color: c),
             ),
           ],
         ),
@@ -701,12 +819,12 @@ class _TableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF7F8FA);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(.06)
-            : AppColors.slate.withOpacity(.05),
+        color: bg,
         border: Border(bottom: BorderSide(color: border)),
       ),
       child: Row(
@@ -834,7 +952,7 @@ class _AttendanceRowTile extends StatelessWidget {
                         fontSize: 11.5,
                         color: isDark
                             ? Colors.white.withOpacity(.78)
-                            : AppColors.slate.withOpacity(.80),
+                            : const Color(0xFF6B7280),
                       ),
                     ),
                   ],
@@ -873,9 +991,9 @@ class _BodyCell extends StatelessWidget {
     } else if (isEmpty && mutedIfEmpty) {
       baseColor = isDark
           ? Colors.white.withOpacity(.25)
-          : AppColors.slate.withOpacity(.28);
+          : const Color(0xFF9CA3AF);
     } else {
-      baseColor = isDark ? Colors.white : AppColors.blue500;
+      baseColor = isDark ? Colors.white : const Color(0xFF111827);
     }
 
     return Expanded(

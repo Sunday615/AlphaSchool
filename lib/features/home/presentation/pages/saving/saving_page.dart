@@ -1,8 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_theme.dart';
 
@@ -42,19 +42,17 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
   }
 
   // =========================
-  // Styles
+  // Background style (clean)
   // =========================
-  LinearGradient _premiumGradient(bool isDark) => isDark
-      ? AppTheme.premiumDarkGradient
-      : LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.blue500.withOpacity(.10),
-            Colors.white,
-            AppColors.blue400.withOpacity(.10),
-          ],
-        );
+  LinearGradient _pageGradient(bool isDark, ColorScheme cs) {
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: isDark
+          ? const [Color(0xFF0F141B), Color(0xFF0B0F14)]
+          : const [Color(0xFFF7F8FA), Color(0xFFFFFFFF)],
+    );
+  }
 
   // =========================
   // Date picker
@@ -172,19 +170,54 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
           child: Builder(
             builder: (context) {
               final t = Theme.of(context);
+              final cs = t.colorScheme;
               final isDark = t.brightness == Brightness.dark;
 
-              final titleColor = isDark ? Colors.white : AppColors.blue500;
+              final cardColor = isDark
+                  ? const Color(0xFF121924).withOpacity(.92)
+                  : Colors.white;
+              final border = isDark
+                  ? Colors.white.withOpacity(.08)
+                  : Colors.black.withOpacity(.06);
+              final shadow = Colors.black.withOpacity(isDark ? .32 : .08);
+
+              final textPrimary = isDark
+                  ? Colors.white
+                  : const Color(0xFF111827);
+              final textMuted = isDark
+                  ? Colors.white.withOpacity(.70)
+                  : const Color(0xFF6B7280);
 
               return Scaffold(
-                backgroundColor: t.scaffoldBackgroundColor,
+                backgroundColor: Colors.transparent,
                 body: Stack(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: _premiumGradient(isDark),
+                    // background
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: _pageGradient(isDark, cs),
+                        ),
                       ),
                     ),
+                    // subtle glow
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: RadialGradient(
+                              center: const Alignment(0.0, -0.95),
+                              radius: 1.25,
+                              colors: [
+                                cs.primary.withOpacity(isDark ? .10 : .08),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
                     SafeArea(
                       child: Column(
                         children: [
@@ -193,38 +226,13 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                                   14,
                                   10,
                                   14,
-                                  8,
+                                  10,
                                 ),
-                                child: Row(
-                                  children: [
-                                    _GlassIconButton(
-                                      isDark: isDark,
-                                      icon: FontAwesomeIcons.arrowLeft,
-                                      onTap: () => Navigator.of(context).pop(),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        "Saving",
-                                        style: t.textTheme.titleLarge?.copyWith(
-                                          color: titleColor,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: .2,
-                                        ),
-                                      ),
-                                    ),
-                                    _GlassIconButton(
-                                      isDark: isDark,
-                                      icon: FontAwesomeIcons.arrowsRotate,
-                                      onTap: _resetRange,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    _GlassIconButton(
-                                      isDark: isDark,
-                                      icon: FontAwesomeIcons.calendarDays,
-                                      onTap: _pickRange,
-                                    ),
-                                  ],
+                                child: _TopHeaderBox(
+                                  shadow: shadow,
+                                  onBack: () => Navigator.of(context).pop(),
+                                  onReset: _resetRange,
+                                  onPickRange: _pickRange,
                                 ),
                               )
                               .animate()
@@ -232,24 +240,38 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                               .slideY(begin: .08, end: 0, duration: 220.ms),
 
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-                            child: Column(
-                              children: [
-                                _RangeBar(
-                                      isDark: isDark,
-                                      from: _fromDate,
-                                      to: _toDate,
-                                      onTap: _pickRange,
-                                    )
-                                    .animate()
-                                    .fadeIn(duration: 220.ms, delay: 40.ms)
-                                    .slideY(begin: .08, end: 0),
-                                const SizedBox(height: 10),
-                                _GlassTabBar(isDark: isDark, controller: _tab)
-                                    .animate()
-                                    .fadeIn(duration: 220.ms, delay: 80.ms)
-                                    .slideY(begin: .08, end: 0),
-                              ],
+                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                            child: _Panel(
+                              color: cardColor,
+                              border: border,
+                              shadow: shadow,
+                              padding: const EdgeInsets.fromLTRB(
+                                12,
+                                12,
+                                12,
+                                12,
+                              ),
+                              child: Column(
+                                children: [
+                                  _RangeBar(
+                                    isDark: isDark,
+                                    from: _fromDate,
+                                    to: _toDate,
+                                    onTap: _pickRange,
+                                    textPrimary: textPrimary,
+                                    textMuted: textMuted,
+                                    border: border,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _CleanTabBar(
+                                    isDark: isDark,
+                                    controller: _tab,
+                                    border: border,
+                                    textPrimary: textPrimary,
+                                    textMuted: textMuted,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
 
@@ -260,11 +282,21 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                                 _SavingTabBody(
                                   kind: "Personal",
                                   isDark: isDark,
+                                  cardColor: cardColor,
+                                  border: border,
+                                  shadow: shadow,
+                                  textPrimary: textPrimary,
+                                  textMuted: textMuted,
                                   dataBuilder: () => _buildView(_dataForTab(0)),
                                 ),
                                 _SavingTabBody(
                                   kind: "Class",
                                   isDark: isDark,
+                                  cardColor: cardColor,
+                                  border: border,
+                                  shadow: shadow,
+                                  textPrimary: textPrimary,
+                                  textMuted: textMuted,
                                   dataBuilder: () => _buildView(_dataForTab(1)),
                                 ),
                               ],
@@ -328,16 +360,274 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
 }
 
 // ======================================================
+// TOP HEADER (dark blue gradient box)
+// ======================================================
+class _TopHeaderBox extends StatelessWidget {
+  final Color shadow;
+  final VoidCallback onBack;
+  final VoidCallback onReset;
+  final VoidCallback onPickRange;
+
+  const _TopHeaderBox({
+    required this.shadow,
+    required this.onBack,
+    required this.onReset,
+    required this.onPickRange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+
+    const headerGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF071A33), Color(0xFF0B2B5B), Color(0xFF123B7A)],
+    );
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        gradient: headerGradient,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withOpacity(.10)),
+        boxShadow: [
+          BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: shadow),
+        ],
+      ),
+      child: Row(
+        children: [
+          _HeaderIconButton(icon: FontAwesomeIcons.arrowLeft, onTap: onBack),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Saving",
+              style: t.textTheme.titleLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: .2,
+              ),
+            ),
+          ),
+          _HeaderIconButton(
+            icon: FontAwesomeIcons.arrowsRotate,
+            onTap: onReset,
+          ),
+          const SizedBox(width: 10),
+          _HeaderIconButton(
+            icon: FontAwesomeIcons.calendarDays,
+            onTap: onPickRange,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _HeaderIconButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withOpacity(.18)),
+          ),
+          child: FaIcon(icon, color: Colors.white, size: 18),
+        ),
+      ),
+    );
+  }
+}
+
+// ======================================================
+// PANEL (clean card like ContactPage)
+// ======================================================
+class _Panel extends StatelessWidget {
+  final Color color;
+  final Color border;
+  final Color shadow;
+  final EdgeInsetsGeometry? padding;
+  final Widget child;
+
+  const _Panel({
+    required this.color,
+    required this.border,
+    required this.shadow,
+    required this.child,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: border),
+        boxShadow: [
+          BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: shadow),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+// ======================================================
+// RANGE + TAB BAR (clean)
+// ======================================================
+class _RangeBar extends StatelessWidget {
+  final bool isDark;
+  final DateTime? from;
+  final DateTime? to;
+  final VoidCallback onTap;
+
+  final Color textPrimary;
+  final Color textMuted;
+  final Color border;
+
+  const _RangeBar({
+    required this.isDark,
+    required this.from,
+    required this.to,
+    required this.onTap,
+    required this.textPrimary,
+    required this.textMuted,
+    required this.border,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toString();
+    final df = _safeDateFmt('dd MMM yyyy', locale);
+
+    final fromText = from == null ? "Any" : df.format(from!);
+    final toText = to == null ? "Any" : df.format(to!);
+
+    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF3F4F6);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: border),
+        ),
+        child: Row(
+          children: [
+            FaIcon(FontAwesomeIcons.sliders, color: textPrimary, size: 16),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "$fromText  →  $toText",
+                style: TextStyle(
+                  color: textPrimary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .2,
+                ),
+              ),
+            ),
+            Text(
+              "Filter",
+              style: TextStyle(color: textMuted, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(width: 8),
+            FaIcon(FontAwesomeIcons.chevronRight, color: textMuted, size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CleanTabBar extends StatelessWidget {
+  final bool isDark;
+  final TabController controller;
+  final Color border;
+  final Color textPrimary;
+  final Color textMuted;
+
+  const _CleanTabBar({
+    required this.isDark,
+    required this.controller,
+    required this.border,
+    required this.textPrimary,
+    required this.textMuted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF3F4F6);
+
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: border),
+      ),
+      child: TabBar(
+        controller: controller,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        splashBorderRadius: BorderRadius.circular(14),
+        indicator: BoxDecoration(
+          color: isDark ? Colors.white.withOpacity(.12) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: border),
+        ),
+        labelColor: textPrimary,
+        unselectedLabelColor: textMuted,
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.w900,
+          letterSpacing: .2,
+        ),
+        tabs: const [
+          Tab(text: "Personal"),
+          Tab(text: "Class"),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================================================
 // TAB BODY (Table + Footer Summary)
 // ======================================================
 class _SavingTabBody extends StatelessWidget {
   final String kind;
   final bool isDark;
+  final Color cardColor;
+  final Color border;
+  final Color shadow;
+  final Color textPrimary;
+  final Color textMuted;
   final _SavingView Function() dataBuilder;
 
   const _SavingTabBody({
     required this.kind,
     required this.isDark,
+    required this.cardColor,
+    required this.border,
+    required this.shadow,
+    required this.textPrimary,
+    required this.textMuted,
     required this.dataBuilder,
   });
 
@@ -346,10 +636,9 @@ class _SavingTabBody extends StatelessWidget {
     final view = dataBuilder();
     final rows = view.rows;
 
-    final title = isDark ? Colors.white : AppColors.blue500;
-    final muted = isDark
-        ? Colors.white.withOpacity(.70)
-        : AppColors.blue500.withOpacity(.62);
+    final pillBg = isDark
+        ? Colors.white.withOpacity(.06)
+        : const Color(0xFFF3F4F6);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
@@ -363,20 +652,14 @@ class _SavingTabBody extends StatelessWidget {
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withOpacity(.10)
-                      : AppColors.blue500.withOpacity(.10),
+                  color: pillBg,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withOpacity(.14)
-                        : AppColors.blue500.withOpacity(.18),
-                  ),
+                  border: Border.all(color: border),
                 ),
                 child: Text(
                   "$kind saving",
                   style: TextStyle(
-                    color: title,
+                    color: textPrimary,
                     fontWeight: FontWeight.w900,
                     letterSpacing: .2,
                     fontSize: 12.5,
@@ -387,7 +670,7 @@ class _SavingTabBody extends StatelessWidget {
               Text(
                 "Rows: ${rows.length}",
                 style: TextStyle(
-                  color: muted,
+                  color: textMuted,
                   fontWeight: FontWeight.w800,
                   fontSize: 12,
                 ),
@@ -398,12 +681,16 @@ class _SavingTabBody extends StatelessWidget {
           const SizedBox(height: 12),
 
           Expanded(
-            child: _GlassPanel(
-              isDark: isDark,
+            child: _Panel(
+              color: cardColor,
+              border: border,
+              shadow: shadow,
               child: Column(
                 children: [
                   _TableHeader(
                     isDark: isDark,
+                    border: border,
+                    textMuted: textMuted,
                   ).animate().fadeIn(duration: 180.ms),
 
                   Expanded(
@@ -412,7 +699,7 @@ class _SavingTabBody extends StatelessWidget {
                             child: Text(
                               "No data in selected range",
                               style: TextStyle(
-                                color: muted,
+                                color: textMuted,
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
@@ -425,10 +712,14 @@ class _SavingTabBody extends StatelessWidget {
                               thickness: 1,
                               color: isDark
                                   ? Colors.white.withOpacity(.08)
-                                  : AppColors.slate.withOpacity(.10),
+                                  : Colors.black.withOpacity(.06),
                             ),
                             itemBuilder: (context, i) {
-                              return _TableRowItem(isDark: isDark, row: rows[i])
+                              return _TableRowItem(
+                                    isDark: isDark,
+                                    row: rows[i],
+                                    textPrimary: textPrimary,
+                                  )
                                   .animate()
                                   .fadeIn(duration: 140.ms, delay: (14 * i).ms)
                                   .slideY(begin: .05, end: 0, duration: 140.ms);
@@ -436,7 +727,15 @@ class _SavingTabBody extends StatelessWidget {
                           ),
                   ),
 
-                  _FooterSummary(isDark: isDark, typeText: kind, view: view)
+                  _FooterSummary(
+                        isDark: isDark,
+                        typeText: kind,
+                        view: view,
+                        border: border,
+                        shadow: shadow,
+                        textPrimary: textPrimary,
+                        textMuted: textMuted,
+                      )
                       .animate()
                       .fadeIn(duration: 220.ms, delay: 60.ms)
                       .slideY(begin: .06, end: 0, duration: 220.ms),
@@ -455,27 +754,24 @@ class _SavingTabBody extends StatelessWidget {
 // ======================================================
 class _TableHeader extends StatelessWidget {
   final bool isDark;
-  const _TableHeader({required this.isDark});
+  final Color border;
+  final Color textMuted;
+
+  const _TableHeader({
+    required this.isDark,
+    required this.border,
+    required this.textMuted,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final c = isDark
-        ? Colors.white.withOpacity(.75)
-        : AppColors.blue500.withOpacity(.70);
+    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF7F8FA);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 10),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(.05)
-            : AppColors.blue500.withOpacity(.05),
-        border: Border(
-          bottom: BorderSide(
-            color: isDark
-                ? Colors.white.withOpacity(.10)
-                : AppColors.slate.withOpacity(.14),
-          ),
-        ),
+        color: bg,
+        border: Border(bottom: BorderSide(color: border)),
       ),
       child: Row(
         children: [
@@ -484,7 +780,7 @@ class _TableHeader extends StatelessWidget {
             child: Text(
               "Date",
               style: TextStyle(
-                color: c,
+                color: textMuted,
                 fontWeight: FontWeight.w900,
                 letterSpacing: .2,
                 fontSize: 12.5,
@@ -498,7 +794,7 @@ class _TableHeader extends StatelessWidget {
               child: Text(
                 "In / Out",
                 style: TextStyle(
-                  color: c,
+                  color: textMuted,
                   fontWeight: FontWeight.w900,
                   letterSpacing: .2,
                   fontSize: 12.5,
@@ -513,7 +809,7 @@ class _TableHeader extends StatelessWidget {
               child: Text(
                 "Balance",
                 style: TextStyle(
-                  color: c,
+                  color: textMuted,
                   fontWeight: FontWeight.w900,
                   letterSpacing: .2,
                   fontSize: 12.5,
@@ -530,8 +826,13 @@ class _TableHeader extends StatelessWidget {
 class _TableRowItem extends StatelessWidget {
   final bool isDark;
   final _SavingRow row;
+  final Color textPrimary;
 
-  const _TableRowItem({required this.isDark, required this.row});
+  const _TableRowItem({
+    required this.isDark,
+    required this.row,
+    required this.textPrimary,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -548,23 +849,22 @@ class _TableRowItem extends StatelessWidget {
 
     final netColor = net > 0
         ? const Color(0xFF22C55E)
-        : (net < 0 ? const Color(0xFFEF4444) : Colors.white.withOpacity(.25));
+        : (net < 0 ? const Color(0xFFEF4444) : Colors.black.withOpacity(.25));
 
     final balText = nf.format(row.balance.abs());
     final balPrefix = row.balance >= 0 ? "" : "−";
-    final balColor = isDark
-        ? (row.balance >= 0 ? Colors.white : Colors.white.withOpacity(.85))
-        : (row.balance >= 0
-              ? AppColors.blue500
-              : AppColors.blue500.withOpacity(.85));
 
-    final dateColor = isDark ? Colors.white : AppColors.blue500;
+    final balColor = isDark
+        ? Colors.white
+        : (row.balance >= 0
+              ? const Color(0xFF111827)
+              : const Color(0xFF111827));
+
+    final dateColor = textPrimary;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.transparent : Colors.white,
-      ),
+      color: Colors.transparent,
       child: Row(
         children: [
           Expanded(
@@ -620,10 +920,19 @@ class _FooterSummary extends StatelessWidget {
   final String typeText;
   final _SavingView view;
 
+  final Color border;
+  final Color shadow;
+  final Color textPrimary;
+  final Color textMuted;
+
   const _FooterSummary({
     required this.isDark,
     required this.typeText,
     required this.view,
+    required this.border,
+    required this.shadow,
+    required this.textPrimary,
+    required this.textMuted,
   });
 
   @override
@@ -643,21 +952,14 @@ class _FooterSummary extends StatelessWidget {
     final bal = view.totalBalance;
     final balText = bal >= 0 ? nf.format(bal) : "−${nf.format(bal.abs())}";
 
-    final border = isDark
-        ? Colors.white.withOpacity(.12)
-        : AppColors.slate.withOpacity(.14);
-
-    final titleColor = isDark ? Colors.white : AppColors.blue500;
-    final muted = isDark
-        ? Colors.white.withOpacity(.68)
-        : AppColors.blue500.withOpacity(.62);
+    final sectionBg = isDark
+        ? Colors.white.withOpacity(.04)
+        : const Color(0xFFF7F8FA);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(.05)
-            : AppColors.blue500.withOpacity(.035),
+        color: sectionBg,
         border: Border(top: BorderSide(color: border)),
       ),
       child: Column(
@@ -668,7 +970,7 @@ class _FooterSummary extends StatelessWidget {
               Text(
                 "Saving details",
                 style: TextStyle(
-                  color: titleColor,
+                  color: textPrimary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: .2,
                   fontSize: 13,
@@ -678,7 +980,7 @@ class _FooterSummary extends StatelessWidget {
               Text(
                 "Summary",
                 style: TextStyle(
-                  color: muted,
+                  color: textMuted,
                   fontWeight: FontWeight.w900,
                   letterSpacing: .2,
                   fontSize: 12,
@@ -687,7 +989,6 @@ class _FooterSummary extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-
           _EqualGrid(
             gap: 10,
             children: [
@@ -696,7 +997,9 @@ class _FooterSummary extends StatelessWidget {
                 title: "Type",
                 value: typeText,
                 icon: FontAwesomeIcons.tag,
-                valueColor: titleColor,
+                valueColor: textPrimary,
+                border: border,
+                shadow: shadow,
               ),
               _MiniMetric(
                 isDark: isDark,
@@ -705,6 +1008,8 @@ class _FooterSummary extends StatelessWidget {
                 subtitle: latestDate.isEmpty ? null : latestDate,
                 icon: FontAwesomeIcons.arrowDown,
                 valueColor: const Color(0xFF22C55E),
+                border: border,
+                shadow: shadow,
               ),
               _MiniMetric(
                 isDark: isDark,
@@ -712,6 +1017,8 @@ class _FooterSummary extends StatelessWidget {
                 value: totalIn,
                 icon: FontAwesomeIcons.circleArrowUp,
                 valueColor: const Color(0xFF22C55E),
+                border: border,
+                shadow: shadow,
               ),
               _MiniMetric(
                 isDark: isDark,
@@ -719,13 +1026,17 @@ class _FooterSummary extends StatelessWidget {
                 value: totalOut,
                 icon: FontAwesomeIcons.circleArrowDown,
                 valueColor: const Color(0xFFEF4444),
+                border: border,
+                shadow: shadow,
               ),
               _MiniMetric(
                 isDark: isDark,
                 title: "Total Balance (In - Out)",
                 value: balText,
                 icon: FontAwesomeIcons.wallet,
-                valueColor: isDark ? Colors.white : AppColors.blue500,
+                valueColor: textPrimary,
+                border: border,
+                shadow: shadow,
                 span2: true,
               ),
             ],
@@ -794,6 +1105,9 @@ class _MiniMetric extends StatelessWidget {
   final Color valueColor;
   final bool span2;
 
+  final Color border;
+  final Color shadow;
+
   const _MiniMetric({
     required this.isDark,
     required this.title,
@@ -801,24 +1115,21 @@ class _MiniMetric extends StatelessWidget {
     this.subtitle,
     required this.icon,
     required this.valueColor,
+    required this.border,
+    required this.shadow,
     this.span2 = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final border = isDark
-        ? Colors.white.withOpacity(.12)
-        : AppColors.slate.withOpacity(.14);
-    final bg = isDark
-        ? Colors.white.withOpacity(.07)
-        : Colors.white.withOpacity(.86);
+    final bg = isDark ? Colors.white.withOpacity(.06) : Colors.white;
 
     final titleC = isDark
         ? Colors.white.withOpacity(.70)
-        : AppColors.blue500.withOpacity(.68);
+        : const Color(0xFF6B7280);
     final subC = isDark
         ? Colors.white.withOpacity(.62)
-        : AppColors.blue500.withOpacity(.55);
+        : const Color(0xFF9CA3AF);
 
     return SizedBox(
       height: 72,
@@ -832,7 +1143,7 @@ class _MiniMetric extends StatelessWidget {
             BoxShadow(
               blurRadius: 12,
               offset: const Offset(0, 8),
-              color: Colors.black.withOpacity(isDark ? .18 : .05),
+              color: shadow.withOpacity(isDark ? .55 : .35),
             ),
           ],
         ),
@@ -844,7 +1155,7 @@ class _MiniMetric extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white.withOpacity(.10)
-                    : AppColors.blue500.withOpacity(.10),
+                    : const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: border),
               ),
@@ -898,192 +1209,6 @@ class _MiniMetric extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ======================================================
-// HEADER WIDGETS
-// ======================================================
-class _GlassTabBar extends StatelessWidget {
-  final bool isDark;
-  final TabController controller;
-
-  const _GlassTabBar({required this.isDark, required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    final border = isDark
-        ? Colors.white.withOpacity(.14)
-        : AppColors.slate.withOpacity(.14);
-
-    return _GlassPanel(
-      isDark: isDark,
-      padding: const EdgeInsets.all(6),
-      child: TabBar(
-        controller: controller,
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
-        splashBorderRadius: BorderRadius.circular(16),
-        indicator: BoxDecoration(
-          color: isDark
-              ? Colors.white.withOpacity(.14)
-              : AppColors.blue500.withOpacity(.12),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: border),
-        ),
-        labelColor: isDark ? Colors.white : AppColors.blue500,
-        unselectedLabelColor: isDark
-            ? Colors.white.withOpacity(.70)
-            : AppColors.blue500.withOpacity(.55),
-        labelStyle: const TextStyle(
-          fontWeight: FontWeight.w900,
-          letterSpacing: .2,
-        ),
-        tabs: const [
-          Tab(text: "Personal"),
-          Tab(text: "Class"),
-        ],
-      ),
-    );
-  }
-}
-
-class _RangeBar extends StatelessWidget {
-  final bool isDark;
-  final DateTime? from;
-  final DateTime? to;
-  final VoidCallback onTap;
-
-  const _RangeBar({
-    required this.isDark,
-    required this.from,
-    required this.to,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context).toString();
-    final df = _safeDateFmt('dd MMM yyyy', locale);
-
-    final fromText = from == null ? "Any" : df.format(from!);
-    final toText = to == null ? "Any" : df.format(to!);
-
-    final text = isDark ? Colors.white : AppColors.blue500;
-    final muted = isDark
-        ? Colors.white.withOpacity(.70)
-        : AppColors.blue500.withOpacity(.62);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: _GlassPanel(
-        isDark: isDark,
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-        child: Row(
-          children: [
-            FaIcon(FontAwesomeIcons.sliders, color: text, size: 16),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                "$fromText  →  $toText",
-                style: TextStyle(
-                  color: text,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: .2,
-                ),
-              ),
-            ),
-            Text(
-              "Filter",
-              style: TextStyle(color: muted, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(width: 8),
-            FaIcon(FontAwesomeIcons.chevronRight, color: muted, size: 14),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ======================================================
-// GLASS / ICON BUTTON
-// ======================================================
-class _GlassPanel extends StatelessWidget {
-  final bool isDark;
-  final EdgeInsetsGeometry? padding;
-  final Widget child;
-
-  const _GlassPanel({required this.isDark, required this.child, this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    final bg = isDark
-        ? Colors.white.withOpacity(.08)
-        : Colors.white.withOpacity(.82);
-    final border = isDark
-        ? Colors.white.withOpacity(.14)
-        : AppColors.slate.withOpacity(.14);
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(22),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: isDark ? 10 : 6,
-          sigmaY: isDark ? 10 : 6,
-        ),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: border),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-class _GlassIconButton extends StatelessWidget {
-  final bool isDark;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _GlassIconButton({
-    required this.isDark,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final border = isDark
-        ? Colors.white.withOpacity(.14)
-        : AppColors.slate.withOpacity(.14);
-    final bg = isDark
-        ? Colors.white.withOpacity(.10)
-        : Colors.white.withOpacity(.86);
-    final iconC = isDark ? Colors.white : AppColors.blue500;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: border),
-          ),
-          child: FaIcon(icon, color: iconC, size: 18),
         ),
       ),
     );

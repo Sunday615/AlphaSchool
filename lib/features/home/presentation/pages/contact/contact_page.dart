@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_theme.dart';
 
 /// ✅ Model: Contact info ของโรงเรียน
-///
-/// แนะนำ: ตอนเรียกหน้า ให้ส่ง info ที่เป็นข้อมูลจริงเข้ามา
-/// เช่น ContactPage(info: SchoolContactInfo(...))
 class SchoolContactInfo {
   final String schoolName;
 
   /// Asset path โลโก้โรงเรียน
-  /// - ใส่ไฟล์จริงใน assets แล้วประกาศใน pubspec.yaml
   final String logoAsset;
 
   final String phone;
@@ -40,7 +37,6 @@ class SchoolContactInfo {
     required this.location,
   });
 
-  /// ✅ ตัวอย่าง (เปลี่ยนเป็นข้อมูลจริงของคุณได้)
   static const demo = SchoolContactInfo(
     schoolName: 'Your School Name',
     logoAsset: 'assets/images/school_logo.png',
@@ -58,12 +54,12 @@ class ContactPage extends StatelessWidget {
 
   const ContactPage({super.key, this.info = SchoolContactInfo.demo});
 
-  static const double _maxWidth = 560;
+  static const double _maxWidth = 620;
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppTheme.mode, // ✅ ผูกกับ year_picker (global)
+      valueListenable: AppTheme.mode,
       builder: (context, mode, _) {
         final locale = Localizations.localeOf(context);
         final base = (mode == ThemeMode.dark)
@@ -72,224 +68,178 @@ class ContactPage extends StatelessWidget {
 
         return AnimatedTheme(
           data: base,
-          duration: const Duration(milliseconds: 260),
+          duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           child: Builder(
             builder: (context) {
               final t = Theme.of(context);
-              final isDark = t.brightness == Brightness.dark;
               final cs = t.colorScheme;
+              final isDark = t.brightness == Brightness.dark;
 
-              final titleColor = isDark ? Colors.white : AppColors.blue500;
-              final muted = isDark
-                  ? Colors.white.withOpacity(.74)
-                  : AppColors.blue500.withOpacity(.62);
-
-              final border = isDark
-                  ? Colors.white.withOpacity(.10)
-                  : AppColors.slate.withOpacity(.12);
-
-              final cardBg = isDark ? AppTheme.darkBluePremium : cs.surface;
-              final shadow = Colors.black.withOpacity(isDark ? .25 : .08);
-
-              final bgGradient = isDark
-                  ? AppTheme.premiumDarkGradient
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.blue500.withOpacity(.10),
-                        Colors.white,
-                        AppColors.blue400.withOpacity(.05),
-                      ],
-                    );
-
-              return Scaffold(
-                backgroundColor: t.scaffoldBackgroundColor,
-                extendBodyBehindAppBar: true,
-                appBar: AppBar(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  foregroundColor: titleColor,
-                  title: const Text('Contact'),
-                  centerTitle: true,
-                ),
-                body: Container(
-                  decoration: BoxDecoration(gradient: bgGradient),
-                  child: SafeArea(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: _maxWidth),
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // ===== Header Card =====
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: cardBg.withOpacity(isDark ? .88 : 1),
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(color: border),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 10),
-                                      color: shadow,
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    _LogoFrame(
-                                          assetPath: info.logoAsset,
-                                          isDark: isDark,
-                                          borderColor: border,
-                                        )
-                                        .animate()
-                                        .fadeIn(duration: 220.ms)
-                                        .slideY(
-                                          begin: .06,
-                                          end: 0,
-                                          duration: 220.ms,
-                                          curve: Curves.easeOut,
-                                        ),
-                                    const SizedBox(height: 14),
-                                    Text(
-                                      info.schoolName,
-                                      textAlign: TextAlign.center,
-                                      style: t.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        color: titleColor,
-                                        letterSpacing: -.2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      'Phone • Email • Social • Website • Location',
-                                      textAlign: TextAlign.center,
-                                      style: t.textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        color: muted,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(height: 14),
-
-                              // ===== Contact List Card =====
-                              Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: cardBg.withOpacity(
-                                        isDark ? .86 : 1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(color: border),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          blurRadius: 18,
-                                          offset: const Offset(0, 10),
-                                          color: shadow,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        _ContactTile(
-                                          icon: Icons.phone_rounded,
-                                          label: 'Phone',
-                                          value: info.phone,
-                                          isDark: isDark,
-                                          accent: const Color(0xFF22C55E),
-                                          onCopy: () =>
-                                              _copy(context, info.phone),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        _ContactTile(
-                                          icon: Icons.email_rounded,
-                                          label: 'Email',
-                                          value: info.email,
-                                          isDark: isDark,
-                                          accent: const Color(0xFF3B82F6),
-                                          onCopy: () =>
-                                              _copy(context, info.email),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        _ContactTile(
-                                          icon: Icons.facebook,
-                                          label: 'Facebook',
-                                          value: info.facebook,
-                                          isDark: isDark,
-                                          accent: const Color(0xFF1877F2),
-                                          onCopy: () =>
-                                              _copy(context, info.facebook),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        _ContactTile(
-                                          icon: Icons.message_rounded,
-                                          label: 'WhatsApp',
-                                          value: info.whatsapp,
-                                          isDark: isDark,
-                                          accent: const Color(0xFF25D366),
-                                          onCopy: () =>
-                                              _copy(context, info.whatsapp),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        _ContactTile(
-                                          icon: Icons.language_rounded,
-                                          label: 'Website',
-                                          value: info.website,
-                                          isDark: isDark,
-                                          accent: const Color(0xFFF59E0B),
-                                          onCopy: () =>
-                                              _copy(context, info.website),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        _ContactTile(
-                                          icon: Icons.location_on_rounded,
-                                          label: 'Location',
-                                          value: info.location,
-                                          isDark: isDark,
-                                          accent: const Color(0xFFEF4444),
-                                          onCopy: () =>
-                                              _copy(context, info.location),
-                                          maxLines: 3,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                  .animate()
-                                  .fadeIn(delay: 80.ms, duration: 240.ms)
-                                  .slideY(
-                                    begin: .05,
-                                    end: 0,
-                                    duration: 240.ms,
-                                    curve: Curves.easeOut,
-                                  ),
-
-                              const SizedBox(height: 14),
-
-                              // ===== Tip =====
-                              Text(
-                                'Tip: Tap the copy icon to copy each field.',
-                                textAlign: TextAlign.center,
-                                style: t.textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: muted,
-                                ),
-                              ),
+              // ✅ Clean white/grey modern background
+              final bg = Stack(
+                children: [
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: isDark
+                              ? [
+                                  const Color(0xFF0F141B),
+                                  const Color(0xFF0B0F14),
+                                ]
+                              : [
+                                  const Color(0xFFF7F8FA),
+                                  const Color(0xFFFFFFFF),
+                                ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // subtle soft glow (very light)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: const Alignment(0.0, -0.95),
+                            radius: 1.2,
+                            colors: [
+                              cs.primary.withOpacity(isDark ? .10 : .08),
+                              Colors.transparent,
                             ],
                           ),
                         ),
                       ),
                     ),
                   ),
+                ],
+              );
+
+              // ✅ Clean card colors
+              final cardColor = isDark
+                  ? const Color(0xFF121924).withOpacity(.92)
+                  : Colors.white;
+
+              final border = isDark
+                  ? Colors.white.withOpacity(.08)
+                  : Colors.black.withOpacity(.06);
+
+              final shadow = Colors.black.withOpacity(isDark ? .32 : .08);
+
+              final muted = cs.onSurface.withOpacity(.65);
+
+              final items = <_ContactItem>[
+                _ContactItem(
+                  'Phone',
+                  info.phone,
+                  FontAwesomeIcons.phone,
+                  iconColor: const Color(0xFF22C55E),
+                ),
+                _ContactItem(
+                  'Email',
+                  info.email,
+                  FontAwesomeIcons.envelope,
+                  iconColor: const Color(0xFF3B82F6),
+                ),
+                _ContactItem(
+                  'Facebook',
+                  info.facebook,
+                  FontAwesomeIcons.facebookF,
+                  iconColor: const Color(0xFF2563EB),
+                ),
+                _ContactItem(
+                  'WhatsApp',
+                  info.whatsapp,
+                  FontAwesomeIcons.whatsapp,
+                  iconColor: const Color(0xFF16A34A),
+                ),
+                _ContactItem(
+                  'Website',
+                  info.website,
+                  FontAwesomeIcons.globe,
+                  iconColor: const Color(0xFF14B8A6),
+                ),
+                _ContactItem(
+                  'Location',
+                  info.location,
+                  FontAwesomeIcons.locationDot,
+                  iconColor: const Color(0xFFF59E0B),
+                  maxLines: 3,
+                ),
+              ];
+
+              return Scaffold(
+                backgroundColor: Colors.transparent,
+                extendBodyBehindAppBar: true,
+                appBar: AppBar(
+                  title: const Text('Contact'),
+                  centerTitle: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  foregroundColor: cs.onSurface,
+                ),
+                body: Stack(
+                  children: [
+                    bg,
+                    SafeArea(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: _maxWidth,
+                          ),
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _HeaderCard(
+                                      info: info,
+                                      border: border,
+                                      shadow: shadow,
+                                    )
+                                    .animate()
+                                    .fadeIn(duration: 180.ms)
+                                    .slideY(
+                                      begin: .05,
+                                      end: 0,
+                                      duration: 200.ms,
+                                      curve: Curves.easeOut,
+                                    ),
+                                const SizedBox(height: 14),
+                                _ContactCard(
+                                      items: items,
+                                      cardColor: cardColor,
+                                      border: border,
+                                      shadow: shadow,
+                                    )
+                                    .animate()
+                                    .fadeIn(delay: 60.ms, duration: 200.ms)
+                                    .slideY(
+                                      begin: .04,
+                                      end: 0,
+                                      duration: 220.ms,
+                                      curve: Curves.easeOut,
+                                    ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  '',
+                                  textAlign: TextAlign.center,
+                                  style: t.textTheme.bodySmall?.copyWith(
+                                    color: muted,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
@@ -298,81 +248,120 @@ class ContactPage extends StatelessWidget {
       },
     );
   }
+}
 
-  static Future<void> _copy(BuildContext context, String text) async {
-    if (text.trim().isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: text.trim()));
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Copied'),
-        duration: const Duration(milliseconds: 900),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+class _HeaderCard extends StatelessWidget {
+  final SchoolContactInfo info;
+  final Color border;
+  final Color shadow;
+
+  const _HeaderCard({
+    required this.info,
+    required this.border,
+    required this.shadow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+
+    // ✅ Dark-blue gradient header + white text (always)
+    const headerGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF071A33), Color(0xFF0B2B5B), Color(0xFF123B7A)],
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: headerGradient,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(.10)),
+        boxShadow: [
+          BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: shadow),
+        ],
+      ),
+      child: Column(
+        children: [
+          _LogoAvatar(assetPath: info.logoAsset),
+          const SizedBox(height: 12),
+          Text(
+            info.schoolName,
+            textAlign: TextAlign.center,
+            style: t.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Phone • Email • Social • Website • Location',
+            textAlign: TextAlign.center,
+            style: t.textTheme.bodyMedium?.copyWith(
+              color: Colors.white.withOpacity(.78),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            height: 4,
+            width: 130,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(99),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(.85),
+                  Colors.white.withOpacity(.35),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _LogoFrame extends StatelessWidget {
+class _LogoAvatar extends StatelessWidget {
   final String assetPath;
-  final bool isDark;
-  final Color borderColor;
 
-  const _LogoFrame({
-    required this.assetPath,
-    required this.isDark,
-    required this.borderColor,
-  });
+  const _LogoAvatar({required this.assetPath});
 
   @override
   Widget build(BuildContext context) {
-    final ring = isDark
-        ? Colors.white.withOpacity(.16)
-        : AppColors.slate.withOpacity(.12);
-
-    final bg = isDark
-        ? Colors.white.withOpacity(.06)
-        : AppColors.grayUltraLight.withOpacity(.55);
+    final cs = Theme.of(context).colorScheme;
 
     return Container(
-      width: 110,
-      height: 110,
+      width: 104,
+      height: 104,
       decoration: BoxDecoration(
-        color: bg,
         shape: BoxShape.circle,
-        border: Border.all(color: ring, width: 1.2),
+        color: Colors.white.withOpacity(.10),
+        border: Border.all(color: Colors.white.withOpacity(.22), width: 1.6),
         boxShadow: [
           BoxShadow(
             blurRadius: 18,
             offset: const Offset(0, 10),
-            color: Colors.black.withOpacity(isDark ? .30 : .08),
+            color: Colors.black.withOpacity(.22),
           ),
         ],
       ),
-      child: Center(
-        child: Container(
-          width: 92,
-          height: 92,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: borderColor),
-          ),
-          clipBehavior: Clip.antiAlias,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: ClipOval(
           child: Image.asset(
             assetPath,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) {
-              // ✅ ถ้า asset ยังไม่มี -> แสดงไอคอนแทน เพื่อไม่ให้แอปพัง
-              return Icon(
-                Icons.school_rounded,
-                size: 52,
-                color: isDark
-                    ? Colors.white.withOpacity(.82)
-                    : AppColors.blue500,
-              );
-            },
+            errorBuilder: (_, __, ___) => Center(
+              child: FaIcon(
+                FontAwesomeIcons.school,
+                size: 44,
+                color: cs.primary,
+              ),
+            ),
           ),
         ),
       ),
@@ -380,105 +369,178 @@ class _LogoFrame extends StatelessWidget {
   }
 }
 
-class _ContactTile extends StatelessWidget {
-  final IconData icon;
+class _ContactItem {
   final String label;
   final String value;
-  final bool isDark;
-  final Color accent;
-  final VoidCallback onCopy;
+  final IconData icon;
   final int maxLines;
+  final Color iconColor;
 
-  const _ContactTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.isDark,
-    required this.accent,
-    required this.onCopy,
+  const _ContactItem(
+    this.label,
+    this.value,
+    this.icon, {
     this.maxLines = 1,
+    required this.iconColor,
+  });
+}
+
+class _ContactCard extends StatelessWidget {
+  final List<_ContactItem> items;
+  final Color cardColor;
+  final Color border;
+  final Color shadow;
+
+  const _ContactCard({
+    required this.items,
+    required this.cardColor,
+    required this.border,
+    required this.shadow,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    final isDark = t.brightness == Brightness.dark;
 
-    final tileBg = isDark
-        ? Colors.white.withOpacity(.06)
-        : AppColors.grayUltraLight.withOpacity(.50);
-
-    final stroke = isDark
-        ? Colors.white.withOpacity(.10)
-        : AppColors.slate.withOpacity(.12);
-
-    final valueColor = isDark ? Colors.white : AppColors.blue500;
-    final muted = isDark
-        ? Colors.white.withOpacity(.72)
-        : AppColors.blue500.withOpacity(.62);
-
-    final hasValue = value.trim().isNotEmpty;
+    final dividerColor = Colors.black.withOpacity(isDark ? .20 : .06);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: tileBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: stroke),
-      ),
-      child: Row(
-        crossAxisAlignment: maxLines > 1
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: accent.withOpacity(isDark ? .18 : .12),
-              border: Border.all(color: accent.withOpacity(isDark ? .30 : .18)),
-            ),
-            child: Icon(icon, color: accent, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: t.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: muted,
-                    letterSpacing: .2,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  hasValue ? value : '-',
-                  maxLines: maxLines,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: hasValue ? valueColor : muted,
-                    height: 1.25,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            tooltip: 'Copy',
-            onPressed: hasValue ? onCopy : null,
-            icon: Icon(
-              Icons.copy_rounded,
-              color: hasValue
-                  ? (isDark ? Colors.white.withOpacity(.88) : AppColors.blue500)
-                  : muted,
-            ),
-          ),
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: border),
+        boxShadow: [
+          BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: shadow),
         ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            _ContactRow(
+              item: items[i],
+              onCopy: () => _copy(context, items[i].value),
+            ),
+            if (i != items.length - 1)
+              Divider(height: 1, thickness: 1, color: dividerColor),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _copy(BuildContext context, String text) async {
+    final cleaned = text.trim();
+    if (cleaned.isEmpty) return;
+
+    await Clipboard.setData(ClipboardData(text: cleaned));
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Copied'),
+        duration: Duration(milliseconds: 900),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
+    );
+  }
+}
+
+class _ContactRow extends StatelessWidget {
+  final _ContactItem item;
+  final VoidCallback onCopy;
+
+  const _ContactRow({required this.item, required this.onCopy});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    final cs = t.colorScheme;
+    final isDark = t.brightness == Brightness.dark;
+
+    final labelColor = cs.onSurface.withOpacity(.62);
+    final valueColor = cs.onSurface;
+
+    final hasValue = item.value.trim().isNotEmpty;
+
+    // ✅ Clean modern icon bubble (grey) + colored icon
+    final bubbleBg = isDark
+        ? Colors.white.withOpacity(.06)
+        : const Color(0xFFF3F4F6);
+
+    final bubbleBorder = isDark
+        ? Colors.white.withOpacity(.10)
+        : Colors.black.withOpacity(.06);
+
+    return InkWell(
+      onTap: hasValue ? onCopy : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          crossAxisAlignment: item.maxLines > 1
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: bubbleBg,
+                border: Border.all(color: bubbleBorder),
+              ),
+              child: Center(
+                child: FaIcon(
+                  item.icon,
+                  color: item.iconColor,
+                  size: 18, // FontAwesome looks best slightly smaller
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.label,
+                    style: t.textTheme.labelLarge?.copyWith(
+                      color: labelColor,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    hasValue ? item.value : '-',
+                    maxLines: item.maxLines,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.textTheme.bodyLarge?.copyWith(
+                      color: hasValue ? valueColor : labelColor,
+                      fontWeight: FontWeight.w800,
+                      height: 1.25,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // ✅ copy icon (subtle grey) -> FontAwesome
+            FaIcon(
+              FontAwesomeIcons.copy,
+              size: 18,
+              color: hasValue
+                  ? (isDark
+                        ? Colors.white.withOpacity(.65)
+                        : Colors.black.withOpacity(.45))
+                  : cs.onSurface.withOpacity(.25),
+            ),
+          ],
+        ),
       ),
     );
   }
