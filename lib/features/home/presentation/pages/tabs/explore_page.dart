@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -78,7 +79,7 @@ class ExplorePage extends StatelessWidget {
       _ProjectCard(
         id: 'contact',
         title: 'Contact',
-        icon: Icons.support_agent_rounded,
+        icon: FontAwesomeIcons.addressBook,
         progress: 0.46,
         quickContact: qc, // ✅ show quick contact (2 fields)
       ),
@@ -728,7 +729,7 @@ class _QuickContactCard extends StatelessWidget {
             isDark: isDark,
             label: "WhatsApp",
             value: data.whatsapp,
-            icon: Icons.message_rounded,
+            icon: FontAwesomeIcons.whatsapp,
             accent: green,
           ),
         ],
