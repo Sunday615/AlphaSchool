@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/widgets/app_page_template.dart';
 
 class SavingPage extends StatefulWidget {
   const SavingPage({super.key});
@@ -14,6 +15,11 @@ class SavingPage extends StatefulWidget {
 }
 
 class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
+  static const double _maxWidth = 680;
+
+  // ✅ ใช้ bg เดียวกับ template (คุณปรับได้)
+  static const String _bgAsset = "assets/images/homepagewall/mainbg.jpeg";
+
   late final TabController _tab;
 
   DateTime? _fromDate;
@@ -39,19 +45,6 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
   void dispose() {
     _tab.dispose();
     super.dispose();
-  }
-
-  // =========================
-  // Background style (clean)
-  // =========================
-  LinearGradient _pageGradient(bool isDark, ColorScheme cs) {
-    return LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: isDark
-          ? const [Color(0xFF0F141B), Color(0xFF0B0F14)]
-          : const [Color(0xFFF7F8FA), Color(0xFFFFFFFF)],
-    );
   }
 
   // =========================
@@ -170,16 +163,23 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
           child: Builder(
             builder: (context) {
               final t = Theme.of(context);
-              final cs = t.colorScheme;
               final isDark = t.brightness == Brightness.dark;
 
-              final cardColor = isDark
-                  ? const Color(0xFF121924).withOpacity(.92)
-                  : Colors.white;
+              // ✅ premium dark gradient for panels (match Attendance Premium)
+              final Gradient premiumPanelGrad = LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF0B2B5B).withOpacity(.78),
+                  const Color(0xFF071A33).withOpacity(.88),
+                  const Color(0xFF060B16).withOpacity(.92),
+                ],
+              );
+
               final border = isDark
-                  ? Colors.white.withOpacity(.08)
+                  ? Colors.white.withOpacity(.12)
                   : Colors.black.withOpacity(.06);
-              final shadow = Colors.black.withOpacity(isDark ? .32 : .08);
+              final shadow = Colors.black.withOpacity(isDark ? .45 : .08);
 
               final textPrimary = isDark
                   ? Colors.white
@@ -188,93 +188,76 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                   ? Colors.white.withOpacity(.70)
                   : const Color(0xFF6B7280);
 
-              return Scaffold(
-                backgroundColor: Colors.transparent,
-                body: Stack(
-                  children: [
-                    // background
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: _pageGradient(isDark, cs),
-                        ),
-                      ),
-                    ),
-                    // subtle glow
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: RadialGradient(
-                              center: const Alignment(0.0, -0.95),
-                              radius: 1.25,
-                              colors: [
-                                cs.primary.withOpacity(isDark ? .10 : .08),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    SafeArea(
+              return AppPageTemplate(
+                title: "Saving",
+                backgroundAsset: _bgAsset,
+                scrollable: false,
+                premiumDark: true,
+                onBack: () => Navigator.of(context).maybePop(),
+                contentPadding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                child: SizedBox.expand(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: _maxWidth),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  14,
-                                  10,
-                                  14,
-                                  10,
-                                ),
-                                child: _TopHeaderBox(
-                                  shadow: shadow,
-                                  onBack: () => Navigator.of(context).pop(),
-                                  onReset: _resetRange,
-                                  onPickRange: _pickRange,
-                                ),
+                          // ✅ Top header (premium)
+                          _TopHeaderBox(
+                                shadow: shadow,
+                                onBack: () => Navigator.of(context).maybePop(),
+                                onReset: _resetRange,
+                                onPickRange: _pickRange,
                               )
                               .animate()
                               .fadeIn(duration: 220.ms)
                               .slideY(begin: .08, end: 0, duration: 220.ms),
 
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                            child: _Panel(
-                              color: cardColor,
-                              border: border,
-                              shadow: shadow,
-                              padding: const EdgeInsets.fromLTRB(
-                                12,
-                                12,
-                                12,
-                                12,
-                              ),
-                              child: Column(
-                                children: [
-                                  _RangeBar(
-                                    isDark: isDark,
-                                    from: _fromDate,
-                                    to: _toDate,
-                                    onTap: _pickRange,
-                                    textPrimary: textPrimary,
-                                    textMuted: textMuted,
-                                    border: border,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  _CleanTabBar(
-                                    isDark: isDark,
-                                    controller: _tab,
-                                    border: border,
-                                    textPrimary: textPrimary,
-                                    textMuted: textMuted,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          const SizedBox(height: 12),
 
+                          // ✅ Range + Tab controls (panel)
+                          _Panel(
+                                isDark: isDark,
+                                border: border,
+                                shadow: shadow,
+                                color: isDark ? null : Colors.white,
+                                gradient: isDark ? premiumPanelGrad : null,
+                                padding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  12,
+                                  12,
+                                  12,
+                                ),
+                                child: Column(
+                                  children: [
+                                    _RangeBar(
+                                      isDark: isDark,
+                                      from: _fromDate,
+                                      to: _toDate,
+                                      onTap: _pickRange,
+                                      textPrimary: textPrimary,
+                                      textMuted: textMuted,
+                                      border: border,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    _CleanTabBar(
+                                      isDark: isDark,
+                                      controller: _tab,
+                                      border: border,
+                                      textPrimary: textPrimary,
+                                      textMuted: textMuted,
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(duration: 220.ms, delay: 40.ms)
+                              .slideY(begin: .08, end: 0),
+
+                          const SizedBox(height: 12),
+
+                          // ✅ Body
                           Expanded(
                             child: TabBarView(
                               controller: _tab,
@@ -282,21 +265,21 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                                 _SavingTabBody(
                                   kind: "Personal",
                                   isDark: isDark,
-                                  cardColor: cardColor,
                                   border: border,
                                   shadow: shadow,
                                   textPrimary: textPrimary,
                                   textMuted: textMuted,
+                                  panelGrad: premiumPanelGrad,
                                   dataBuilder: () => _buildView(_dataForTab(0)),
                                 ),
                                 _SavingTabBody(
                                   kind: "Class",
                                   isDark: isDark,
-                                  cardColor: cardColor,
                                   border: border,
                                   shadow: shadow,
                                   textPrimary: textPrimary,
                                   textMuted: textMuted,
+                                  panelGrad: premiumPanelGrad,
                                   dataBuilder: () => _buildView(_dataForTab(1)),
                                 ),
                               ],
@@ -305,7 +288,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               );
             },
@@ -360,7 +343,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
 }
 
 // ======================================================
-// TOP HEADER (dark blue gradient box)
+// TOP HEADER (premium gradient box)
 // ======================================================
 class _TopHeaderBox extends StatelessWidget {
   final Color shadow;
@@ -452,20 +435,24 @@ class _HeaderIconButton extends StatelessWidget {
 }
 
 // ======================================================
-// PANEL (clean card like ContactPage)
+// PANEL (รองรับ gradient แบบ premium)
 // ======================================================
 class _Panel extends StatelessWidget {
-  final Color color;
+  final bool isDark;
+  final Color? color;
+  final Gradient? gradient;
   final Color border;
   final Color shadow;
   final EdgeInsetsGeometry? padding;
   final Widget child;
 
   const _Panel({
-    required this.color,
+    required this.isDark,
     required this.border,
     required this.shadow,
     required this.child,
+    this.color,
+    this.gradient,
     this.padding,
   });
 
@@ -474,7 +461,8 @@ class _Panel extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: color,
+        color: gradient == null ? color : null,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: border),
         boxShadow: [
@@ -487,7 +475,7 @@ class _Panel extends StatelessWidget {
 }
 
 // ======================================================
-// RANGE + TAB BAR (clean)
+// RANGE + TAB BAR (clean + animate friendly)
 // ======================================================
 class _RangeBar extends StatelessWidget {
   final bool isDark;
@@ -517,7 +505,9 @@ class _RangeBar extends StatelessWidget {
     final fromText = from == null ? "Any" : df.format(from!);
     final toText = to == null ? "Any" : df.format(to!);
 
-    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF3F4F6);
+    final bg = isDark
+        ? const Color(0xFF071A33).withOpacity(.45)
+        : const Color(0xFFF3F4F6);
 
     return InkWell(
       onTap: onTap,
@@ -573,7 +563,9 @@ class _CleanTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF3F4F6);
+    final bg = isDark
+        ? const Color(0xFF071A33).withOpacity(.45)
+        : const Color(0xFFF3F4F6);
 
     return Container(
       padding: const EdgeInsets.all(6),
@@ -613,21 +605,23 @@ class _CleanTabBar extends StatelessWidget {
 class _SavingTabBody extends StatelessWidget {
   final String kind;
   final bool isDark;
-  final Color cardColor;
+
   final Color border;
   final Color shadow;
   final Color textPrimary;
   final Color textMuted;
+
+  final Gradient panelGrad;
   final _SavingView Function() dataBuilder;
 
   const _SavingTabBody({
     required this.kind,
     required this.isDark,
-    required this.cardColor,
     required this.border,
     required this.shadow,
     required this.textPrimary,
     required this.textMuted,
+    required this.panelGrad,
     required this.dataBuilder,
   });
 
@@ -637,114 +631,124 @@ class _SavingTabBody extends StatelessWidget {
     final rows = view.rows;
 
     final pillBg = isDark
-        ? Colors.white.withOpacity(.06)
+        ? const Color(0xFF071A33).withOpacity(.45)
         : const Color(0xFFF3F4F6);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: pillBg,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: border),
-                ),
-                child: Text(
-                  "$kind saving",
-                  style: TextStyle(
-                    color: textPrimary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: .2,
-                    fontSize: 12.5,
-                  ),
-                ),
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: pillBg,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: border),
               ),
-              const Spacer(),
-              Text(
-                "Rows: ${rows.length}",
+              child: Text(
+                "$kind saving",
                 style: TextStyle(
-                  color: textMuted,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
+                  color: textPrimary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .2,
+                  fontSize: 12.5,
                 ),
-              ),
-            ],
-          ).animate().fadeIn(duration: 200.ms).slideY(begin: .06, end: 0),
-
-          const SizedBox(height: 12),
-
-          Expanded(
-            child: _Panel(
-              color: cardColor,
-              border: border,
-              shadow: shadow,
-              child: Column(
-                children: [
-                  _TableHeader(
-                    isDark: isDark,
-                    border: border,
-                    textMuted: textMuted,
-                  ).animate().fadeIn(duration: 180.ms),
-
-                  Expanded(
-                    child: rows.isEmpty
-                        ? Center(
-                            child: Text(
-                              "No data in selected range",
-                              style: TextStyle(
-                                color: textMuted,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            itemCount: rows.length,
-                            separatorBuilder: (_, __) => Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: isDark
-                                  ? Colors.white.withOpacity(.08)
-                                  : Colors.black.withOpacity(.06),
-                            ),
-                            itemBuilder: (context, i) {
-                              return _TableRowItem(
-                                    isDark: isDark,
-                                    row: rows[i],
-                                    textPrimary: textPrimary,
-                                  )
-                                  .animate()
-                                  .fadeIn(duration: 140.ms, delay: (14 * i).ms)
-                                  .slideY(begin: .05, end: 0, duration: 140.ms);
-                            },
-                          ),
-                  ),
-
-                  _FooterSummary(
-                        isDark: isDark,
-                        typeText: kind,
-                        view: view,
-                        border: border,
-                        shadow: shadow,
-                        textPrimary: textPrimary,
-                        textMuted: textMuted,
-                      )
-                      .animate()
-                      .fadeIn(duration: 220.ms, delay: 60.ms)
-                      .slideY(begin: .06, end: 0, duration: 220.ms),
-                ],
               ),
             ),
-          ),
-        ],
-      ),
+            const Spacer(),
+            Text(
+              "Rows: ${rows.length}",
+              style: TextStyle(
+                color: textMuted,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ).animate().fadeIn(duration: 200.ms).slideY(begin: .06, end: 0),
+
+        const SizedBox(height: 12),
+
+        Expanded(
+          child:
+              _Panel(
+                    isDark: isDark,
+                    border: border,
+                    shadow: shadow,
+                    color: isDark ? null : Colors.white,
+                    gradient: isDark ? panelGrad : null,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: Column(
+                        children: [
+                          _TableHeader(
+                            isDark: isDark,
+                            border: border,
+                            textMuted: textMuted,
+                          ).animate().fadeIn(duration: 180.ms),
+
+                          Expanded(
+                            child: rows.isEmpty
+                                ? Center(
+                                    child: Text(
+                                      "No data in selected range",
+                                      style: TextStyle(
+                                        color: textMuted,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  )
+                                : ListView.separated(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    itemCount: rows.length,
+                                    separatorBuilder: (_, __) => Divider(
+                                      height: 1,
+                                      thickness: 1,
+                                      color: isDark
+                                          ? Colors.white.withOpacity(.08)
+                                          : Colors.black.withOpacity(.06),
+                                    ),
+                                    itemBuilder: (context, i) {
+                                      return _TableRowItem(
+                                            isDark: isDark,
+                                            row: rows[i],
+                                            textPrimary: textPrimary,
+                                          )
+                                          .animate()
+                                          .fadeIn(
+                                            duration: 140.ms,
+                                            delay: (14 * i).ms,
+                                          )
+                                          .slideY(
+                                            begin: .05,
+                                            end: 0,
+                                            duration: 140.ms,
+                                          );
+                                    },
+                                  ),
+                          ),
+
+                          _FooterSummary(
+                                isDark: isDark,
+                                typeText: kind,
+                                view: view,
+                                border: border,
+                                shadow: shadow,
+                                textPrimary: textPrimary,
+                                textMuted: textMuted,
+                              )
+                              .animate()
+                              .fadeIn(duration: 220.ms, delay: 60.ms)
+                              .slideY(begin: .06, end: 0, duration: 220.ms),
+                        ],
+                      ),
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(duration: 220.ms, delay: 80.ms)
+                  .slideY(begin: .08, end: 0),
+        ),
+      ],
     );
   }
 }
@@ -765,7 +769,9 @@ class _TableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isDark ? Colors.white.withOpacity(.06) : const Color(0xFFF7F8FA);
+    final bg = isDark
+        ? const Color(0xFF071A33).withOpacity(.35)
+        : const Color(0xFFF7F8FA);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 10),
@@ -854,17 +860,21 @@ class _TableRowItem extends StatelessWidget {
     final balText = nf.format(row.balance.abs());
     final balPrefix = row.balance >= 0 ? "" : "−";
 
-    final balColor = isDark
-        ? Colors.white
-        : (row.balance >= 0
-              ? const Color(0xFF111827)
-              : const Color(0xFF111827));
+    final balColor = isDark ? Colors.white : const Color(0xFF111827);
 
-    final dateColor = textPrimary;
+    final rowBg = isDark
+        ? const Color(0xFF071A33).withOpacity(.28)
+        : Colors.transparent;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
-      color: Colors.transparent,
+      decoration: BoxDecoration(
+        color: rowBg,
+        border: Border(
+          left: BorderSide(color: Colors.white.withOpacity(0)),
+          right: BorderSide(color: Colors.white.withOpacity(0)),
+        ),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -872,7 +882,7 @@ class _TableRowItem extends StatelessWidget {
             child: Text(
               dateText,
               style: TextStyle(
-                color: dateColor,
+                color: textPrimary,
                 fontWeight: FontWeight.w900,
                 fontSize: 13.2,
               ),
@@ -953,7 +963,7 @@ class _FooterSummary extends StatelessWidget {
     final balText = bal >= 0 ? nf.format(bal) : "−${nf.format(bal.abs())}";
 
     final sectionBg = isDark
-        ? Colors.white.withOpacity(.04)
+        ? const Color(0xFF071A33).withOpacity(.28)
         : const Color(0xFFF7F8FA);
 
     return Container(
@@ -1122,7 +1132,7 @@ class _MiniMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isDark ? Colors.white.withOpacity(.06) : Colors.white;
+    final bg = isDark ? const Color(0xFF071A33).withOpacity(.45) : Colors.white;
 
     final titleC = isDark
         ? Colors.white.withOpacity(.70)
