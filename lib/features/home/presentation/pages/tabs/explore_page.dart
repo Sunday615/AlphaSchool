@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:alpha_school/core/widgets/scanqrcode/scan_qr_code_page.dart';
 import 'package:alpha_school/features/demo/DemoTest.dart';
 import 'package:alpha_school/features/home/presentation/pages/attendance/attendance_page.dart';
 import 'package:alpha_school/features/home/presentation/pages/calendar/calendar_page.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:alpha_school/features/students/presentation/pages/choose_students.dart';
+import 'package:remixicon/remixicon.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 
@@ -89,6 +91,9 @@ class ExplorePage extends StatelessWidget {
             520.0,
           );
           final headerH = clamp(desiredHeader, 280.0, headerMax);
+
+          // ✅ for FAB safe positioning
+          final bottomInset = MediaQuery.of(context).padding.bottom;
 
           return SizedBox(
             height: h,
@@ -360,10 +365,97 @@ class ExplorePage extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                // ==========================================================
+                // ✅ Scan QR Floating Button (ตำแหน่งวงแดง)
+                // ==========================================================
+                Positioned(
+                  right: (isTablet || isLargeTablet) ? 22 : 16,
+                  bottom: (12 + bottomInset).toDouble(),
+                  child:
+                      _ScanQrFab(
+                            isSmallPhone: isSmallPhone,
+                            onTap: () async {
+                              final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const ScanQrCodePage(),
+                                ),
+                              );
+
+                              if (result != null) {
+                                // result คือ string QR ที่สแกนได้
+                                debugPrint("QR = $result");
+                              }
+                            },
+                          )
+                          .animate()
+                          .fadeIn(delay: 220.ms, duration: 240.ms)
+                          .scale(
+                            begin: const Offset(.92, .92),
+                            end: const Offset(1, 1),
+                            duration: 260.ms,
+                            curve: Curves.easeOutBack,
+                          ),
+                ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ======================================================
+// ✅ Floating Scan QR Button (Dark Blue Premium)
+// ======================================================
+class _ScanQrFab extends StatelessWidget {
+  final bool isSmallPhone;
+  final VoidCallback onTap;
+
+  const _ScanQrFab({required this.isSmallPhone, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    // ✅ BIGGER
+    final d = isSmallPhone ? 68.0 : 78.0; // เดิม 56/62
+    final iconSize = (d * 0.58).clamp(32.0, 44.0); // เดิม ~0.52
+
+    const premiumGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF0B2A66), Color(0xFF0A3E9A), Color(0xFF0A57D6)],
+      stops: [0.0, 0.55, 1.0],
+    );
+
+    return Material(
+      color: Colors.transparent,
+      child: InkResponse(
+        onTap: onTap,
+        radius: d / 2,
+        child: Container(
+          width: d,
+          height: d,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: premiumGradient,
+            border: Border.all(color: Colors.white.withOpacity(.18), width: 1),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 26, // ✅ เพิ่มนิดให้สมดุลกับปุ่มที่ใหญ่ขึ้น
+                offset: const Offset(0, 16),
+                color: Colors.black.withOpacity(.30),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Icon(
+              Remix.qr_scan_2_line,
+              size: iconSize,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -637,7 +729,6 @@ class _MonthCalendarGlassState extends State<_MonthCalendarGlass> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
     final headerH = widget.isSmallPhone ? 30.0 : 34.0;
 
     return Column(
@@ -678,23 +769,17 @@ class _MonthCalendarGlassState extends State<_MonthCalendarGlass> {
 
         Expanded(
           child: IgnorePointer(
-            ignoring: true, // ✅ preview only: disable ALL taps/selection/drag
+            ignoring: true, // ✅ ปิดการกด/ลาก/เลือกทั้งหมด
             child: SfCalendar(
               controller: _ctrl,
               view: CalendarView.month,
               initialDisplayDate: widget.initialDate,
               backgroundColor: Colors.transparent,
-
               headerHeight: 0,
-
-              // ✅ ยัง swipe เปลี่ยนเดือนได้ (เพราะเป็น gesture ภายใน calendar)
-              // แต่พอ IgnorePointer = true จะ "ปิด swipe ด้วย" เช่นกัน
-              // ถ้าคุณอยากให้ swipe ยังได้อยู่ ให้ดูตัวเลือกด้านล่าง (Option B)
               monthViewSettings: const MonthViewSettings(
                 showAgenda: false,
                 navigationDirection: MonthNavigationDirection.horizontal,
               ),
-
               viewHeaderHeight: widget.isSmallPhone ? 18 : 26,
               viewHeaderStyle: ViewHeaderStyle(
                 dayTextStyle: TextStyle(
@@ -703,10 +788,7 @@ class _MonthCalendarGlassState extends State<_MonthCalendarGlass> {
                   fontSize: widget.isSmallPhone ? 9.5 : 10.5,
                 ),
               ),
-
               todayHighlightColor: Colors.white.withOpacity(.90),
-
-              // ✅ selection decoration คงไว้ได้ (แต่จะไม่เกิด selection แล้ว)
               selectionDecoration: BoxDecoration(
                 color: Colors.white.withOpacity(.10),
                 borderRadius: BorderRadius.circular(10),
@@ -715,9 +797,6 @@ class _MonthCalendarGlassState extends State<_MonthCalendarGlass> {
                   width: 1,
                 ),
               ),
-
-              // ✅ onViewChanged จะไม่ถูกเรียกแล้วเมื่อ IgnorePointer=true (เพราะ swipe ถูกปิด)
-              // ถ้าจะให้ swipe ได้ ให้ดู Option B ด้านล่าง
               monthCellBuilder: (context, details) {
                 final d = details.date;
                 final now = DateTime.now();
@@ -846,22 +925,15 @@ class _MiniInfoCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          pctText,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(.98),
-                            fontWeight: FontWeight.w900,
-                            fontSize: pctSize,
-                            height: 1.0,
-                            letterSpacing: .2,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                      ],
+                    Text(
+                      pctText,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(.98),
+                        fontWeight: FontWeight.w900,
+                        fontSize: pctSize,
+                        height: 1.0,
+                        letterSpacing: .2,
+                      ),
                     ),
                   ],
                 ),
@@ -875,7 +947,6 @@ class _MiniInfoCard extends StatelessWidget {
                         isSmallPhone: isSmallPhone,
                       ),
                     ),
-                    const SizedBox(width: 10),
                   ],
                 ),
               ],
@@ -921,205 +992,14 @@ class _PercentBar extends StatelessWidget {
           duration: const Duration(milliseconds: 650),
           curve: Curves.easeOutCubic,
           builder: (context, t, _) {
-            return LayoutBuilder(
-              builder: (context, c) {
-                final w = c.maxWidth;
-                final x = (w * t).clamp(0.0, w);
-
-                final knobSize = height * 1.25;
-                final knobLeft = (x - knobSize / 2).clamp(0.0, w - knobSize);
-
-                return Stack(
-                  children: [
-                    FractionallySizedBox(
-                      widthFactor: t,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(.95),
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 14,
-                              spreadRadius: 1,
-                              color: Colors.white.withOpacity(.18),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    ...[0.0, 0.25, 0.5, 0.75, 1.0].map((f) {
-                      final left = (w * f - 0.5).clamp(0.0, w - 1);
-                      return Positioned(
-                        left: left,
-                        top: 2,
-                        bottom: 2,
-                        child: Container(
-                          width: 1,
-                          color: Colors.white.withOpacity(f == 0.5 ? .28 : .18),
-                        ),
-                      );
-                    }),
-                    Positioned(
-                      left: (x - 1).clamp(0.0, w - 2),
-                      top: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 2,
-                        color: Colors.white.withOpacity(.95),
-                      ),
-                    ),
-                    Positioned(
-                      left: knobLeft,
-                      top: (height - knobSize) / 2,
-                      child: Container(
-                        width: knobSize,
-                        height: knobSize,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(.98),
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                              color: Colors.black.withOpacity(.25),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+            return FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: t,
+              child: Container(
+                decoration: BoxDecoration(color: Colors.white.withOpacity(.95)),
+              ),
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-// =====================
-// ✅ Mini Pill (คงเดิม)
-// =====================
-class _MiniPill extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final double? percent;
-
-  const _MiniPill({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.percent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final w = MediaQuery.sizeOf(context).width;
-    final isSmallPhone = w < 360;
-
-    final iconBox = isSmallPhone ? 36.0 : 40.0;
-    final iconSize = isSmallPhone ? 16.0 : 17.0;
-
-    final titleSize = isSmallPhone ? 12.5 : 13.0;
-    final subSize = isSmallPhone ? 11.0 : 11.5;
-
-    final pct = percent == null ? null : percent!.clamp(0.0, 1.0);
-    final pctText = pct == null ? null : "${(pct * 100).round()}%";
-    final pctSize = isSmallPhone ? 18.0 : 20.0;
-    final pctHint = isSmallPhone ? 10.0 : 10.5;
-
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: isSmallPhone ? 12.0 : 14.0,
-          vertical: isSmallPhone ? 10.0 : 12.0,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(.08),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withOpacity(.12)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: iconBox,
-              height: iconBox,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(.10),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withOpacity(.14)),
-              ),
-              child: Center(
-                child: FaIcon(
-                  icon,
-                  color: Colors.white.withOpacity(.94),
-                  size: iconSize,
-                ),
-              ),
-            ),
-            SizedBox(width: isSmallPhone ? 10 : 12),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(.98),
-                      fontWeight: FontWeight.w900,
-                      fontSize: titleSize,
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(.70),
-                      fontWeight: FontWeight.w700,
-                      fontSize: subSize,
-                      height: 1.0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (pctText != null) ...[
-              const SizedBox(width: 10),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    pctText,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(.98),
-                      fontWeight: FontWeight.w900,
-                      fontSize: pctSize,
-                      height: 1.0,
-                      letterSpacing: .2,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "percent",
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(.60),
-                      fontWeight: FontWeight.w700,
-                      fontSize: pctHint,
-                      height: 1.0,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
         ),
       ),
     );
@@ -1477,52 +1357,6 @@ class _GlowBlob extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(colors: [color, Colors.transparent]),
-      ),
-    );
-  }
-}
-
-class _FakeSlider extends StatelessWidget {
-  final String valueText;
-  const _FakeSlider({required this.valueText});
-
-  @override
-  Widget build(BuildContext context) {
-    final w = MediaQuery.sizeOf(context).width;
-    final isSmallPhone = w < 360;
-
-    return Container(
-      height: isSmallPhone ? 30.0 : 34.0,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withOpacity(.10)),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: isSmallPhone ? 8.0 : 10.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                height: isSmallPhone ? 9.0 : 10.0,
-                width: isSmallPhone ? 90.0 : 120.0,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(.18),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-            ),
-          ),
-          Text(
-            valueText,
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: isSmallPhone ? 11.5 : 12.0,
-            ),
-          ),
-        ],
       ),
     );
   }

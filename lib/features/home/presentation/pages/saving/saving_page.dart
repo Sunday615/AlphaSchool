@@ -96,6 +96,16 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
   }
 
   // =========================
+  // Withdraw action (Personal only)
+  // =========================
+  void _onWithdrawPressed() {
+    // TODO: Navigate to withdraw page / open dialog
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Withdraw tapped")));
+  }
+
+  // =========================
   // Data selection + compute
   // =========================
   List<_SavingTxn> _dataForTab(int index) =>
@@ -165,7 +175,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
               final t = Theme.of(context);
               final isDark = t.brightness == Brightness.dark;
 
-              // ✅ premium dark gradient for panels (match Attendance Premium)
+              // ✅ premium dark gradient for panels
               final Gradient premiumPanelGrad = LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -189,7 +199,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                   : const Color(0xFF6B7280);
 
               return AppPageTemplate(
-                title: "Saving",
+                title: "ເງິນຝາກປະຫຍັດ",
                 backgroundAsset: _bgAsset,
                 scrollable: false,
                 premiumDark: true,
@@ -203,20 +213,6 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // ✅ Top header (premium)
-                          _TopHeaderBox(
-                                shadow: shadow,
-                                onBack: () => Navigator.of(context).maybePop(),
-                                onReset: _resetRange,
-                                onPickRange: _pickRange,
-                              )
-                              .animate()
-                              .fadeIn(duration: 220.ms)
-                              .slideY(begin: .08, end: 0, duration: 220.ms),
-
-                          const SizedBox(height: 12),
-
-                          // ✅ Range + Tab controls (panel)
                           _Panel(
                                 isDark: isDark,
                                 border: border,
@@ -236,6 +232,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                                       from: _fromDate,
                                       to: _toDate,
                                       onTap: _pickRange,
+                                      onLongPress: _resetRange,
                                       textPrimary: textPrimary,
                                       textMuted: textMuted,
                                       border: border,
@@ -252,18 +249,16 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                                 ),
                               )
                               .animate()
-                              .fadeIn(duration: 220.ms, delay: 40.ms)
+                              .fadeIn(duration: 220.ms)
                               .slideY(begin: .08, end: 0),
 
                           const SizedBox(height: 12),
 
-                          // ✅ Body
                           Expanded(
                             child: TabBarView(
                               controller: _tab,
                               children: [
                                 _SavingTabBody(
-                                  kind: "Personal",
                                   isDark: isDark,
                                   border: border,
                                   shadow: shadow,
@@ -271,9 +266,10 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                                   textMuted: textMuted,
                                   panelGrad: premiumPanelGrad,
                                   dataBuilder: () => _buildView(_dataForTab(0)),
+                                  onWithdraw: _onWithdrawPressed,
+                                  typeLabel: "ສ່ວນບຸກຄົນ",
                                 ),
                                 _SavingTabBody(
-                                  kind: "Class",
                                   isDark: isDark,
                                   border: border,
                                   shadow: shadow,
@@ -281,6 +277,8 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                                   textMuted: textMuted,
                                   panelGrad: premiumPanelGrad,
                                   dataBuilder: () => _buildView(_dataForTab(1)),
+                                  onWithdraw: null,
+                                  typeLabel: "ຫ້ອງຮຽນ",
                                 ),
                               ],
                             ),
@@ -343,99 +341,7 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
 }
 
 // ======================================================
-// TOP HEADER (premium gradient box)
-// ======================================================
-class _TopHeaderBox extends StatelessWidget {
-  final Color shadow;
-  final VoidCallback onBack;
-  final VoidCallback onReset;
-  final VoidCallback onPickRange;
-
-  const _TopHeaderBox({
-    required this.shadow,
-    required this.onBack,
-    required this.onReset,
-    required this.onPickRange,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context);
-
-    const headerGradient = LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Color(0xFF071A33), Color(0xFF0B2B5B), Color(0xFF123B7A)],
-    );
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      decoration: BoxDecoration(
-        gradient: headerGradient,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withOpacity(.10)),
-        boxShadow: [
-          BoxShadow(blurRadius: 18, offset: const Offset(0, 10), color: shadow),
-        ],
-      ),
-      child: Row(
-        children: [
-          _HeaderIconButton(icon: FontAwesomeIcons.arrowLeft, onTap: onBack),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              "Saving",
-              style: t.textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                letterSpacing: .2,
-              ),
-            ),
-          ),
-          _HeaderIconButton(
-            icon: FontAwesomeIcons.arrowsRotate,
-            onTap: onReset,
-          ),
-          const SizedBox(width: 10),
-          _HeaderIconButton(
-            icon: FontAwesomeIcons.calendarDays,
-            onTap: onPickRange,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _HeaderIconButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Ink(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(.12),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withOpacity(.18)),
-          ),
-          child: FaIcon(icon, color: Colors.white, size: 18),
-        ),
-      ),
-    );
-  }
-}
-
-// ======================================================
-// PANEL (รองรับ gradient แบบ premium)
+// PANEL
 // ======================================================
 class _Panel extends StatelessWidget {
   final bool isDark;
@@ -475,13 +381,14 @@ class _Panel extends StatelessWidget {
 }
 
 // ======================================================
-// RANGE + TAB BAR (clean + animate friendly)
+// RANGE + TAB BAR
 // ======================================================
 class _RangeBar extends StatelessWidget {
   final bool isDark;
   final DateTime? from;
   final DateTime? to;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   final Color textPrimary;
   final Color textMuted;
@@ -492,6 +399,7 @@ class _RangeBar extends StatelessWidget {
     required this.from,
     required this.to,
     required this.onTap,
+    this.onLongPress,
     required this.textPrimary,
     required this.textMuted,
     required this.border,
@@ -511,6 +419,7 @@ class _RangeBar extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -534,7 +443,7 @@ class _RangeBar extends StatelessWidget {
               ),
             ),
             Text(
-              "Filter",
+              "ຄົ້ນຫາ",
               style: TextStyle(color: textMuted, fontWeight: FontWeight.w900),
             ),
             const SizedBox(width: 8),
@@ -591,8 +500,8 @@ class _CleanTabBar extends StatelessWidget {
           letterSpacing: .2,
         ),
         tabs: const [
-          Tab(text: "Personal"),
-          Tab(text: "Class"),
+          Tab(text: "ສ່ວນບຸກຄົນ"),
+          Tab(text: "ຫ້ອງຮຽນ"),
         ],
       ),
     );
@@ -600,10 +509,9 @@ class _CleanTabBar extends StatelessWidget {
 }
 
 // ======================================================
-// TAB BODY (Table + Footer Summary)
+// TAB BODY
 // ======================================================
 class _SavingTabBody extends StatelessWidget {
-  final String kind;
   final bool isDark;
 
   final Color border;
@@ -614,8 +522,13 @@ class _SavingTabBody extends StatelessWidget {
   final Gradient panelGrad;
   final _SavingView Function() dataBuilder;
 
+  /// ✅ Personal มีปุ่ม / Class ส่ง null เพื่อซ่อนปุ่ม
+  final VoidCallback? onWithdraw;
+
+  /// ✅ เพิ่ม: type label
+  final String typeLabel;
+
   const _SavingTabBody({
-    required this.kind,
     required this.isDark,
     required this.border,
     required this.shadow,
@@ -623,6 +536,8 @@ class _SavingTabBody extends StatelessWidget {
     required this.textMuted,
     required this.panelGrad,
     required this.dataBuilder,
+    required this.onWithdraw,
+    required this.typeLabel,
   });
 
   @override
@@ -630,126 +545,73 @@ class _SavingTabBody extends StatelessWidget {
     final view = dataBuilder();
     final rows = view.rows;
 
-    final pillBg = isDark
-        ? const Color(0xFF071A33).withOpacity(.45)
-        : const Color(0xFFF3F4F6);
+    return _Panel(
+          isDark: isDark,
+          border: border,
+          shadow: shadow,
+          color: isDark ? null : Colors.white,
+          gradient: isDark ? panelGrad : null,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Column(
+              children: [
+                _TableHeader(
+                  isDark: isDark,
+                  border: border,
+                  textMuted: textMuted,
+                  rowsCount: rows.length,
+                ).animate().fadeIn(duration: 180.ms),
 
-    return Column(
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: pillBg,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: border),
-              ),
-              child: Text(
-                "$kind saving",
-                style: TextStyle(
-                  color: textPrimary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: .2,
-                  fontSize: 12.5,
-                ),
-              ),
-            ),
-            const Spacer(),
-            Text(
-              "Rows: ${rows.length}",
-              style: TextStyle(
-                color: textMuted,
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ).animate().fadeIn(duration: 200.ms).slideY(begin: .06, end: 0),
-
-        const SizedBox(height: 12),
-
-        Expanded(
-          child:
-              _Panel(
-                    isDark: isDark,
-                    border: border,
-                    shadow: shadow,
-                    color: isDark ? null : Colors.white,
-                    gradient: isDark ? panelGrad : null,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: Column(
-                        children: [
-                          _TableHeader(
-                            isDark: isDark,
-                            border: border,
-                            textMuted: textMuted,
-                          ).animate().fadeIn(duration: 180.ms),
-
-                          Expanded(
-                            child: rows.isEmpty
-                                ? Center(
-                                    child: Text(
-                                      "No data in selected range",
-                                      style: TextStyle(
-                                        color: textMuted,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  )
-                                : ListView.separated(
-                                    padding: const EdgeInsets.only(bottom: 10),
-                                    itemCount: rows.length,
-                                    separatorBuilder: (_, __) => Divider(
-                                      height: 1,
-                                      thickness: 1,
-                                      color: isDark
-                                          ? Colors.white.withOpacity(.08)
-                                          : Colors.black.withOpacity(.06),
-                                    ),
-                                    itemBuilder: (context, i) {
-                                      return _TableRowItem(
-                                            isDark: isDark,
-                                            row: rows[i],
-                                            textPrimary: textPrimary,
-                                          )
-                                          .animate()
-                                          .fadeIn(
-                                            duration: 140.ms,
-                                            delay: (14 * i).ms,
-                                          )
-                                          .slideY(
-                                            begin: .05,
-                                            end: 0,
-                                            duration: 140.ms,
-                                          );
-                                    },
-                                  ),
+                Expanded(
+                  child: rows.isEmpty
+                      ? Center(
+                          child: Text(
+                            "No data in selected range",
+                            style: TextStyle(
+                              color: textMuted,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          itemCount: rows.length,
+                          separatorBuilder: (_, __) => Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: isDark
+                                ? Colors.white.withOpacity(.08)
+                                : Colors.black.withOpacity(.06),
+                          ),
+                          itemBuilder: (context, i) {
+                            return _TableRowItem(
+                                  isDark: isDark,
+                                  row: rows[i],
+                                  textPrimary: textPrimary,
+                                )
+                                .animate()
+                                .fadeIn(duration: 140.ms, delay: (14 * i).ms)
+                                .slideY(begin: .05, end: 0, duration: 140.ms);
+                          },
+                        ),
+                ),
 
-                          _FooterSummary(
-                                isDark: isDark,
-                                typeText: kind,
-                                view: view,
-                                border: border,
-                                shadow: shadow,
-                                textPrimary: textPrimary,
-                                textMuted: textMuted,
-                              )
-                              .animate()
-                              .fadeIn(duration: 220.ms, delay: 60.ms)
-                              .slideY(begin: .06, end: 0, duration: 220.ms),
-                        ],
-                      ),
-                    ),
-                  )
-                  .animate()
-                  .fadeIn(duration: 220.ms, delay: 80.ms)
-                  .slideY(begin: .08, end: 0),
-        ),
-      ],
-    );
+                _SavingDetailPremium(
+                      view: view,
+                      border: border,
+                      onWithdraw: onWithdraw, // ✅ null = ซ่อนปุ่ม
+                      typeLabel: typeLabel, // ✅ ส่ง type เข้าไป
+                    )
+                    .animate()
+                    .fadeIn(duration: 240.ms, delay: 70.ms)
+                    .slideY(begin: .06, end: 0, duration: 240.ms),
+              ],
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 220.ms, delay: 80.ms)
+        .slideY(begin: .08, end: 0);
   }
 }
 
@@ -760,11 +622,13 @@ class _TableHeader extends StatelessWidget {
   final bool isDark;
   final Color border;
   final Color textMuted;
+  final int rowsCount;
 
   const _TableHeader({
     required this.isDark,
     required this.border,
     required this.textMuted,
+    required this.rowsCount,
   });
 
   @override
@@ -784,7 +648,7 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             flex: 12,
             child: Text(
-              "Date",
+              "ວັນທີ",
               style: TextStyle(
                 color: textMuted,
                 fontWeight: FontWeight.w900,
@@ -798,7 +662,7 @@ class _TableHeader extends StatelessWidget {
             child: Align(
               alignment: Alignment.center,
               child: Text(
-                "In / Out",
+                "ຝາກ / ຖອນ",
                 style: TextStyle(
                   color: textMuted,
                   fontWeight: FontWeight.w900,
@@ -813,7 +677,7 @@ class _TableHeader extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerRight,
               child: Text(
-                "Balance",
+                "ຍອດເຫຼືອ",
                 style: TextStyle(
                   color: textMuted,
                   fontWeight: FontWeight.w900,
@@ -823,6 +687,7 @@ class _TableHeader extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 10),
         ],
       ),
     );
@@ -859,7 +724,6 @@ class _TableRowItem extends StatelessWidget {
 
     final balText = nf.format(row.balance.abs());
     final balPrefix = row.balance >= 0 ? "" : "−";
-
     final balColor = isDark ? Colors.white : const Color(0xFF111827);
 
     final rowBg = isDark
@@ -868,13 +732,7 @@ class _TableRowItem extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
-      decoration: BoxDecoration(
-        color: rowBg,
-        border: Border(
-          left: BorderSide(color: Colors.white.withOpacity(0)),
-          right: BorderSide(color: Colors.white.withOpacity(0)),
-        ),
-      ),
+      decoration: BoxDecoration(color: rowBg),
       child: Row(
         children: [
           Expanded(
@@ -923,26 +781,23 @@ class _TableRowItem extends StatelessWidget {
 }
 
 // ======================================================
-// FOOTER SUMMARY
+// SAVING DETAIL (ซ่อนปุ่มได้ด้วย onWithdraw == null)
 // ======================================================
-class _FooterSummary extends StatelessWidget {
-  final bool isDark;
-  final String typeText;
+class _SavingDetailPremium extends StatelessWidget {
   final _SavingView view;
-
   final Color border;
-  final Color shadow;
-  final Color textPrimary;
-  final Color textMuted;
 
-  const _FooterSummary({
-    required this.isDark,
-    required this.typeText,
+  /// ✅ null = ไม่มีปุ่ม (ใช้กับ Class)
+  final VoidCallback? onWithdraw;
+
+  /// ✅ เพิ่ม: type label
+  final String typeLabel;
+
+  const _SavingDetailPremium({
     required this.view,
     required this.border,
-    required this.shadow,
-    required this.textPrimary,
-    required this.textMuted,
+    required this.onWithdraw,
+    required this.typeLabel,
   });
 
   @override
@@ -950,275 +805,235 @@ class _FooterSummary extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final nf = _safeNumFmt(locale);
 
-    final latest = view.latestIn;
-    final latestText = latest == null ? "-" : "+${nf.format(latest.inAmount)}";
-    final latestDate = latest == null
-        ? ""
-        : _safeDateFmt('yyyy/MM/dd', locale).format(latest.date);
+    final totalInText = nf.format(view.totalIn);
+    final totalOutText = nf.format(view.totalOut);
 
-    final totalIn = "+${nf.format(view.totalIn)}";
-    final totalOut = "−${nf.format(view.totalOut)}";
+    final latest = view.latestIn;
+    final latestText = latest == null ? "-" : nf.format(latest.inAmount);
 
     final bal = view.totalBalance;
-    final balText = bal >= 0 ? nf.format(bal) : "−${nf.format(bal.abs())}";
+    final balText = nf.format(bal);
 
-    final sectionBg = isDark
-        ? const Color(0xFF071A33).withOpacity(.28)
-        : const Color(0xFFF7F8FA);
+    const grad = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF0B2B5B), Color(0xFF071A33), Color(0xFF060B16)],
+    );
+
+    final titleC = Colors.white.withOpacity(.82);
+    final labelC = Colors.white.withOpacity(.72);
+    final lineC = Colors.white.withOpacity(.14);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
-        color: sectionBg,
+        gradient: grad,
         border: Border(top: BorderSide(color: border)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
               Text(
-                "Saving details",
+                "ລາຍລະອຽດ ",
                 style: TextStyle(
-                  color: textPrimary,
+                  color: titleC,
                   fontWeight: FontWeight.w900,
                   letterSpacing: .2,
                   fontSize: 13,
                 ),
               ),
               const Spacer(),
-              Text(
-                "Summary",
-                style: TextStyle(
-                  color: textMuted,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: .2,
-                  fontSize: 12,
+              FaIcon(
+                FontAwesomeIcons.circleInfo,
+                size: 14,
+                color: Colors.white.withOpacity(.70),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // ✅ detail card container
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(.08),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withOpacity(.14)),
+            ),
+            child: Column(
+              children: [
+                // ✅ NEW: Type line
+                _DetailLine(
+                  label: "ປະເພດ :",
+                  value: typeLabel,
+                  labelColor: labelC,
+                  valueColor: Colors.white,
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(height: 1, thickness: 1, color: lineC),
+                ),
+
+                _DetailLine(
+                  label: "ຍອດຍົກມາ :",
+                  value: latestText,
+                  labelColor: labelC,
+                  valueColor: const Color(0xFF22C55E),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(height: 1, thickness: 1, color: lineC),
+                ),
+                _DetailLine(
+                  label: "ຍອດເຄື່ອນໄຫວຝາກ :",
+                  value: totalInText,
+                  labelColor: labelC,
+                  valueColor: const Color(0xFF22C55E),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(height: 1, thickness: 1, color: lineC),
+                ),
+                _DetailLine(
+                  label: "ຍອດເຄື່ອນໄຫວຖອນ :",
+                  value: totalOutText,
+                  labelColor: labelC,
+                  valueColor: const Color(0xFFEF4444),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(height: 1, thickness: 1, color: lineC),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "ຍອດເຫຼືອທ້າຍ :",
+                      style: TextStyle(
+                        color: labelC,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: .2,
+                        fontSize: 12.8,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      balText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: .2,
+                        fontSize: 18.0,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          _EqualGrid(
-            gap: 10,
-            children: [
-              _MiniMetric(
-                isDark: isDark,
-                title: "Type",
-                value: typeText,
-                icon: FontAwesomeIcons.tag,
-                valueColor: textPrimary,
-                border: border,
-                shadow: shadow,
-              ),
-              _MiniMetric(
-                isDark: isDark,
-                title: "Latest In",
-                value: latestText,
-                subtitle: latestDate.isEmpty ? null : latestDate,
-                icon: FontAwesomeIcons.arrowDown,
-                valueColor: const Color(0xFF22C55E),
-                border: border,
-                shadow: shadow,
-              ),
-              _MiniMetric(
-                isDark: isDark,
-                title: "Total In",
-                value: totalIn,
-                icon: FontAwesomeIcons.circleArrowUp,
-                valueColor: const Color(0xFF22C55E),
-                border: border,
-                shadow: shadow,
-              ),
-              _MiniMetric(
-                isDark: isDark,
-                title: "Total Out",
-                value: totalOut,
-                icon: FontAwesomeIcons.circleArrowDown,
-                valueColor: const Color(0xFFEF4444),
-                border: border,
-                shadow: shadow,
-              ),
-              _MiniMetric(
-                isDark: isDark,
-                title: "Total Balance (In - Out)",
-                value: balText,
-                icon: FontAwesomeIcons.wallet,
-                valueColor: textPrimary,
-                border: border,
-                shadow: shadow,
-                span2: true,
-              ),
-            ],
-          ),
+
+          // ✅ แสดงปุ่มเฉพาะ Personal
+          if (onWithdraw != null) ...[
+            const SizedBox(height: 12),
+            _BigWithdrawButton(onTap: onWithdraw!),
+          ],
         ],
       ),
     );
   }
 }
 
-class _EqualGrid extends StatelessWidget {
-  final double gap;
-  final List<Widget> children;
-  const _EqualGrid({required this.gap, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = children;
-
-    final rows = <Widget>[];
-    int i = 0;
-    while (i < items.length) {
-      final w = items[i];
-
-      if (w is _MiniMetric && w.span2) {
-        rows.add(w);
-        i += 1;
-        if (i < items.length) rows.add(SizedBox(height: gap));
-        continue;
-      }
-
-      Widget? w2;
-      if (i + 1 < items.length) {
-        final maybe = items[i + 1];
-        if (maybe is _MiniMetric && maybe.span2) {
-          w2 = null;
-        } else {
-          w2 = maybe;
-        }
-      }
-
-      rows.add(
-        Row(
-          children: [
-            Expanded(child: items[i]),
-            SizedBox(width: gap),
-            Expanded(child: w2 ?? const SizedBox.shrink()),
-          ],
-        ),
-      );
-
-      i += (w2 == null ? 1 : 2);
-      if (i < items.length) rows.add(SizedBox(height: gap));
-    }
-
-    return Column(children: rows);
-  }
-}
-
-class _MiniMetric extends StatelessWidget {
-  final bool isDark;
-  final String title;
+class _DetailLine extends StatelessWidget {
+  final String label;
   final String value;
-  final String? subtitle;
-  final IconData icon;
+  final Color labelColor;
   final Color valueColor;
-  final bool span2;
 
-  final Color border;
-  final Color shadow;
-
-  const _MiniMetric({
-    required this.isDark,
-    required this.title,
+  const _DetailLine({
+    required this.label,
     required this.value,
-    this.subtitle,
-    required this.icon,
+    required this.labelColor,
     required this.valueColor,
-    required this.border,
-    required this.shadow,
-    this.span2 = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bg = isDark ? const Color(0xFF071A33).withOpacity(.45) : Colors.white;
-
-    final titleC = isDark
-        ? Colors.white.withOpacity(.70)
-        : const Color(0xFF6B7280);
-    final subC = isDark
-        ? Colors.white.withOpacity(.62)
-        : const Color(0xFF9CA3AF);
-
-    return SizedBox(
-      height: 72,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: border),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 12,
-              offset: const Offset(0, 8),
-              color: shadow.withOpacity(isDark ? .55 : .35),
-            ),
-          ],
+    return Row(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: labelColor,
+            fontWeight: FontWeight.w900,
+            letterSpacing: .2,
+            fontSize: 12.8,
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withOpacity(.10)
-                    : const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: border),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor,
+            fontWeight: FontWeight.w900,
+            letterSpacing: .2,
+            fontSize: 15.8,
+            height: 1.0,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BigWithdrawButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _BigWithdrawButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const btnColor = Color(0xFF3B5FD9); // ✅ #3b5fd9
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          height: 56,
+          decoration: BoxDecoration(
+            color: btnColor,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 16,
+                offset: const Offset(0, 10),
+                color: Colors.black.withOpacity(.30),
               ),
-              child: Center(child: FaIcon(icon, color: valueColor, size: 16)),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: titleC,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 11.2,
-                      letterSpacing: .2,
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: valueColor,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14.8,
-                      height: 1.0,
-                    ),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: subC,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 10.8,
-                        height: 1.0,
-                      ),
-                    ),
-                  ],
-                ],
+            ],
+            border: Border.all(color: Colors.white.withOpacity(.18)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              FaIcon(
+                FontAwesomeIcons.handHoldingDollar,
+                color: Colors.white,
+                size: 18,
               ),
-            ),
-          ],
+              SizedBox(width: 10),
+              Text(
+                "Withdraw money",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .2,
+                  fontSize: 15.5,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

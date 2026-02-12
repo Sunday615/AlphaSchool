@@ -11,6 +11,7 @@ import 'tabs/explore_page.dart';
 import 'tabs/shop_page.dart';
 import 'tabs/alerts_page.dart';
 import 'tabs/profile_page.dart';
+import 'tabs/setting_page.dart';
 
 class HomeShellPage extends StatefulWidget {
   final StudentCardItem selectedStudent;
@@ -140,6 +141,7 @@ class _HomeShellPageState extends State<HomeShellPage>
                 ShopPage(),
                 AlertsPage(),
                 ProfilePage(),
+                SettingPage(),
               ];
 
               final navItems = const [
@@ -159,6 +161,7 @@ class _HomeShellPageState extends State<HomeShellPage>
                   icon: FontAwesomeIcons.sackXmark,
                   label: "ຄ່າທຳນຽມ",
                 ),
+                AppBottomNavItem(icon: FontAwesomeIcons.gear, label: "ຕັ້ງຄ່າ"),
               ];
 
               return Scaffold(
