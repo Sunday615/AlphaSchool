@@ -6,7 +6,11 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+  /// ✅ optional initial focus from CalendarYear
+  final int? initialYear;
+  final int? initialMonth;
+
+  const CalendarPage({super.key, this.initialYear, this.initialMonth});
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -19,6 +23,7 @@ class _CalendarPageState extends State<CalendarPage> {
   late final List<DateTime> _weekStarts; // start of week (Sunday)
   late final List<DateTime> _sectionMonths; // month section for each week row
   late final int _todayIndex;
+  late final int _targetIndex;
 
   DateTime _visibleMonth = _firstOfMonth(DateTime.now());
 
@@ -27,16 +32,41 @@ class _CalendarPageState extends State<CalendarPage> {
     super.initState();
 
     final now = DateTime.now();
-    _weekStarts = _buildWeekStarts(now, monthsBack: 18, monthsForward: 18);
-    _sectionMonths = _buildSectionMonths(_weekStarts);
-    _todayIndex = _findTodayIndex(_weekStarts, now);
 
-    _visibleMonth = _sectionMonths[_todayIndex];
+    // ✅ if CalendarYear passes month/year, start there
+    final targetYear = widget.initialYear ?? now.year;
+    final rawMonth = widget.initialMonth ?? now.month;
+    final targetMonth = rawMonth < 1 ? 1 : (rawMonth > 12 ? 12 : rawMonth);
+    final anchor = DateTime(targetYear, targetMonth, 15);
+
+    // ✅ expand range enough to always include BOTH anchor month and today
+    final diffMonths =
+        ((anchor.year - now.year) * 12 + (anchor.month - now.month)).abs();
+    final span = diffMonths + 6; // padding
+    final range = span < 18 ? 18 : span;
+
+    _weekStarts = _buildWeekStarts(
+      anchor,
+      monthsBack: range,
+      monthsForward: range,
+    );
+    _sectionMonths = _buildSectionMonths(_weekStarts);
+
+    _todayIndex = _findTodayIndex(_weekStarts, now);
+    _targetIndex =
+        _findTargetMonthIndex(targetYear, targetMonth) ?? _todayIndex;
+
+    _visibleMonth = _sectionMonths[_targetIndex];
 
     _positionsListener.itemPositions.addListener(_handleVisibleMonth);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToToday(jump: true);
+      // ✅ open at selected month if provided, else today
+      if (widget.initialYear != null || widget.initialMonth != null) {
+        _scrollToIndex(_targetIndex, jump: true);
+      } else {
+        _scrollToToday(jump: true);
+      }
     });
   }
 
@@ -68,6 +98,36 @@ class _CalendarPageState extends State<CalendarPage> {
     if (!_isSameMonth(m, _visibleMonth)) {
       setState(() => _visibleMonth = m);
     }
+  }
+
+  void _scrollToIndex(int index, {bool jump = false}) {
+    if (!_itemScrollController.isAttached) return;
+    if (jump) {
+      _itemScrollController.jumpTo(index: index);
+    } else {
+      _itemScrollController.scrollTo(
+        index: index,
+        duration: 420.ms,
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  int? _findTargetMonthIndex(int year, int month) {
+    // 1) best: week that actually contains day 1 of that month
+    for (int i = 0; i < _weekStarts.length; i++) {
+      final d1 = _firstDayInWeekThatIsOne(_weekStarts[i]);
+      if (d1 != null && d1.year == year && d1.month == month) return i;
+    }
+
+    // 2) fallback: first section index where month changes to target
+    final target = DateTime(year, month, 1);
+    for (int i = 0; i < _sectionMonths.length; i++) {
+      final isTarget = _isSameMonth(_sectionMonths[i], target);
+      final wasTarget = i > 0 && _isSameMonth(_sectionMonths[i - 1], target);
+      if (isTarget && !wasTarget) return i;
+    }
+    return null;
   }
 
   void _scrollToToday({bool jump = false}) {

@@ -264,7 +264,6 @@ class ExplorePage extends StatelessWidget {
 
                                   const SizedBox(width: 10),
 
-                                  // ✅ when click go to StudentsCardListPage()
                                   _TopIconButton(
                                         icon: FontAwesomeIcons.arrowsRotate,
                                         onTap: () {
@@ -286,38 +285,38 @@ class ExplorePage extends StatelessWidget {
 
                               SizedBox(height: gapAfterTopbar),
 
-                              // ✅ Card 1: tappable -> new page
-                              _TapScale(
-                                    onTap: () =>
-                                        go(const AttendanceCalendarPage()),
-                                    child: _AttendanceCalendarCard(
-                                      height: topCardH,
-                                      blur: headerBlur,
-                                      scale: s,
-                                      isSmallPhone: isSmallPhone,
-                                      date: today,
-                                      checkedIn: checkedIn,
-                                      checkinTime: checkinTime,
-                                      isDark: isDark,
+                              // ✅ Card 1
+                              _AttendanceCalendarCard(
+                                    height: topCardH,
+                                    blur: headerBlur,
+                                    scale: s,
+                                    isSmallPhone: isSmallPhone,
+                                    date: today,
+                                    checkedIn: checkedIn,
+                                    checkinTime: checkinTime,
+                                    isDark: isDark,
 
-                                      // ✅ NEW
-                                      onTapAttendance: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const AttendancePage(),
-                                          ),
-                                        );
-                                      },
-                                      onTapCalendar: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const YearCalendarPage(),
-                                          ),
-                                        );
-                                      },
-                                    ),
+                                    // ✅ participant 70%
+                                    participantPercent: 0.70,
+
+                                    onTapAttendance: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const AttendancePage(),
+                                        ),
+                                      );
+                                    },
+                                    onTapParticipant: () =>
+                                        go(const ParticipantPage()),
+                                    onTapCalendar: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const YearCalendarPage(),
+                                        ),
+                                      );
+                                    },
                                   )
                                   .animate()
                                   .fadeIn(delay: 120.ms, duration: 260.ms)
@@ -330,16 +329,17 @@ class ExplorePage extends StatelessWidget {
 
                               SizedBox(height: gapBetweenCards),
 
-                              // ✅ Participant: tappable -> new page
+                              // ✅ Event & Announcement card (tappable)
                               _TapScale(
-                                    onTap: () => go(const ParticipantPage()),
+                                    onTap: () =>
+                                        go(const EventAnnouncementPage()),
                                     child: _MiniInfoCard(
                                       height: miniCardH,
                                       blur: miniBlur,
                                       scale: s,
                                       isSmallPhone: isSmallPhone,
                                       isTablet: isTablet || isLargeTablet,
-                                      participantPercent: 0.70,
+                                      eventText: "ປີໃໝ່ລາວ 2026",
                                     ),
                                   )
                                   .animate()
@@ -371,7 +371,7 @@ class ExplorePage extends StatelessWidget {
                 ),
 
                 // ==========================================================
-                // ✅ Scan QR Floating Button (ตำแหน่งวงแดง)
+                // ✅ Scan QR Floating Button
                 // ==========================================================
                 Positioned(
                   right: (isTablet || isLargeTablet) ? 22 : 16,
@@ -387,7 +387,6 @@ class ExplorePage extends StatelessWidget {
                               );
 
                               if (result != null) {
-                                // result คือ string QR ที่สแกนได้
                                 debugPrint("QR = $result");
                               }
                             },
@@ -421,9 +420,8 @@ class _ScanQrFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ BIGGER
-    final d = isSmallPhone ? 68.0 : 78.0; // เดิม 56/62
-    final iconSize = (d * 0.58).clamp(32.0, 44.0); // เดิม ~0.52
+    final d = isSmallPhone ? 68.0 : 78.0;
+    final iconSize = (d * 0.58).clamp(32.0, 44.0);
 
     const premiumGradient = LinearGradient(
       begin: Alignment.topLeft,
@@ -446,7 +444,7 @@ class _ScanQrFab extends StatelessWidget {
             border: Border.all(color: Colors.white.withOpacity(.18), width: 1),
             boxShadow: [
               BoxShadow(
-                blurRadius: 26, // ✅ เพิ่มนิดให้สมดุลกับปุ่มที่ใหญ่ขึ้น
+                blurRadius: 26,
                 offset: const Offset(0, 16),
                 color: Colors.black.withOpacity(.30),
               ),
@@ -466,7 +464,7 @@ class _ScanQrFab extends StatelessWidget {
 }
 
 // =====================
-// ✅ TOP CARD: Attendance + Calendar (Syncfusion)
+// ✅ TOP CARD: Attendance + Calendar
 // =====================
 class _AttendanceCalendarCard extends StatelessWidget {
   final double height;
@@ -479,9 +477,13 @@ class _AttendanceCalendarCard extends StatelessWidget {
   final TimeOfDay checkinTime;
   final bool isDark;
 
-  // ✅ NEW: callbacks แยกซ้าย/ขวา
+  // ✅ participant percent (0.0 - 1.0)
+  final double participantPercent;
+
+  // ✅ taps
   final VoidCallback onTapAttendance;
   final VoidCallback onTapCalendar;
+  final VoidCallback? onTapParticipant;
 
   const _AttendanceCalendarCard({
     required this.height,
@@ -494,13 +496,9 @@ class _AttendanceCalendarCard extends StatelessWidget {
     required this.isDark,
     required this.onTapAttendance,
     required this.onTapCalendar,
+    this.onTapParticipant,
+    this.participantPercent = 0.70,
   });
-
-  String _fmtYMD(DateTime d) {
-    final mm = d.month.toString().padLeft(2, '0');
-    final dd = d.day.toString().padLeft(2, '0');
-    return '${d.year}/$mm/$dd';
-  }
 
   String _fmtTime(TimeOfDay t) {
     final hh = t.hour.toString().padLeft(2, '0');
@@ -511,11 +509,24 @@ class _AttendanceCalendarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titleSize = isSmallPhone ? 12.5 : 13.0;
-    final valueSize = isSmallPhone ? 14.0 : 15.0;
-    final labelSize = isSmallPhone ? 11.5 : 12.0;
+    final valueSize = isSmallPhone ? 15.0 : 16.0;
+    final labelSize = isSmallPhone ? 11.0 : 12.0;
 
     final statusColor = checkedIn ? Colors.greenAccent : Colors.redAccent;
     final statusText = checkedIn ? "Checked-In" : "Not Checked-In";
+
+    final pct = participantPercent.clamp(0.0, 1.0);
+    final pctLabel = "${(pct * 100).round()}%";
+
+    final padL = isSmallPhone ? 14.0 : 16.0;
+    final padT = isSmallPhone ? 12.0 : 14.0;
+    final padR = isSmallPhone ? 12.0 : 14.0;
+    final padB = isSmallPhone ? 12.0 : 14.0;
+
+    final rowDivider = Container(
+      height: 1,
+      color: Colors.white.withOpacity(.20),
+    );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -530,125 +541,221 @@ class _AttendanceCalendarCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // ✅ LEFT (Attendance) - tappable
+              // ✅ LEFT
               Expanded(
-                child: _TapScale(
-                  onTap: onTapAttendance,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      isSmallPhone ? 14.0 : 16.0,
-                      isSmallPhone ? 12.0 : 14.0,
-                      isSmallPhone ? 12.0 : 14.0,
-                      isSmallPhone ? 12.0 : 14.0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            FaIcon(
-                              FontAwesomeIcons.clipboardUser,
-                              size: isSmallPhone ? 13.0 : 14.0,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(padL, padT, padR, padB),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ===== TITLE ROW =====
+                      Row(
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.clipboardUser,
+                            size: isSmallPhone ? 13.0 : 14.0,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
                               "ຕິດຕາມການມາໂຮງຮຽນ",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
                                 fontSize: titleSize,
                               ),
                             ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "ວັນທີ",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(.70),
-                                fontWeight: FontWeight.w700,
-                                fontSize: labelSize,
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: isSmallPhone ? 10 : 12),
+
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(.06),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(.10),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _fmtYMD(date),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: valueSize,
-                              ),
-                            ),
-                            SizedBox(height: isSmallPhone ? 6 : 8),
-                            Text(
-                              "ສະຖານະ",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(.70),
-                                fontWeight: FontWeight.w700,
-                                fontSize: labelSize,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              statusText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontWeight: FontWeight.w900,
-                                fontSize: valueSize,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            FaIcon(
-                              FontAwesomeIcons.clock,
-                              size: isSmallPhone ? 12.0 : 13.0,
-                              color: Colors.white.withOpacity(.86),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                "Check-in: ${_fmtTime(checkinTime)}",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(.86),
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: labelSize,
+                            child: Column(
+                              children: [
+                                // Row 1
+                                Expanded(
+                                  flex: 2,
+                                  child: _TapScale(
+                                    onTap: onTapAttendance,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isSmallPhone ? 12 : 14,
+                                        vertical: isSmallPhone ? 10 : 12,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                statusText,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: statusColor,
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: valueSize,
+                                                  height: 1.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              FaIcon(
+                                                FontAwesomeIcons.clock,
+                                                size: isSmallPhone
+                                                    ? 12.0
+                                                    : 13.0,
+                                                color: Colors.white.withOpacity(
+                                                  .88,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Text(
+                                                  _fmtTime(checkinTime),
+                                                  style: TextStyle(
+                                                    color: Colors.white
+                                                        .withOpacity(.95),
+                                                    fontWeight: FontWeight.w900,
+                                                    fontSize: valueSize,
+                                                    height: 1.0,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+
+                                rowDivider,
+
+                                // Row 2: Participant (bar + %ท้าย bar)
+                                Expanded(
+                                  flex: 3,
+                                  child: _TapScale(
+                                    onTap: onTapParticipant ?? onTapAttendance,
+                                    child: Padding(
+                                      padding: EdgeInsets.fromLTRB(
+                                        isSmallPhone ? 12 : 14,
+                                        isSmallPhone ? 10 : 12,
+                                        isSmallPhone ? 12 : 14,
+                                        isSmallPhone ? 10 : 12,
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              FaIcon(
+                                                FontAwesomeIcons.userGroup,
+                                                color: Colors.white.withOpacity(
+                                                  .92,
+                                                ),
+                                                size: isSmallPhone
+                                                    ? 13.0
+                                                    : 14.0,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  "ຄະແນນການມີສ່ວນຮ່ວມ",
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: Colors.white
+                                                        .withOpacity(.96),
+                                                    fontWeight: FontWeight.w900,
+                                                    fontSize: labelSize,
+                                                    height: 1.0,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: isSmallPhone ? 8 : 10,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: _PercentBar(
+                                                  height: isSmallPhone
+                                                      ? 12.0
+                                                      : 14.0,
+                                                  value: pct,
+                                                  isSmallPhone: isSmallPhone,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Text(
+                                                  pctLabel,
+                                                  style: TextStyle(
+                                                    color: Colors.white
+                                                        .withOpacity(.98),
+                                                    fontWeight: FontWeight.w900,
+                                                    fontSize: isSmallPhone
+                                                        ? 12.5
+                                                        : 14.0,
+                                                    height: 1.0,
+                                                    letterSpacing: .2,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              // ✅ divider
               Container(width: 1, color: Colors.white.withOpacity(.12)),
 
-              // ✅ RIGHT (Calendar) - tappable
+              // ✅ RIGHT (Calendar)
               Expanded(
                 child: _TapScale(
                   onTap: onTapCalendar,
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      isSmallPhone ? 10.0 : 12.0,
-                      isSmallPhone ? 10.0 : 12.0,
-                      isSmallPhone ? 12.0 : 14.0,
-                      isSmallPhone ? 10.0 : 12.0,
-                    ),
+                    padding: EdgeInsets.all(isSmallPhone ? 12.0 : 14.0),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: Container(
@@ -737,7 +844,6 @@ class _MonthCalendarGlassState extends State<_MonthCalendarGlass> {
 
     return Column(
       children: [
-        // ✅ Header แสดงเดือน/ปี อย่างเดียว (เอา prev/next ออก)
         Container(
           height: headerH,
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -770,10 +876,9 @@ class _MonthCalendarGlassState extends State<_MonthCalendarGlass> {
             ),
           ),
         ),
-
         Expanded(
           child: IgnorePointer(
-            ignoring: true, // ✅ ปิดการกด/ลาก/เลือกทั้งหมด
+            ignoring: true,
             child: SfCalendar(
               controller: _ctrl,
               view: CalendarView.month,
@@ -854,7 +959,7 @@ class _MonthCalendarGlassState extends State<_MonthCalendarGlass> {
 }
 
 // =====================
-// Mini info
+// ✅ Mini info (Event & Announcement)
 // =====================
 class _MiniInfoCard extends StatelessWidget {
   final double height;
@@ -863,8 +968,8 @@ class _MiniInfoCard extends StatelessWidget {
   final bool isSmallPhone;
   final bool isTablet;
 
-  /// ✅ 0.0 - 1.0 (เช่น 0.70 = 70%)
-  final double participantPercent;
+  /// ✅ Event content (วันนี้มี Event อะไร)
+  final String eventText;
 
   const _MiniInfoCard({
     required this.height,
@@ -872,20 +977,14 @@ class _MiniInfoCard extends StatelessWidget {
     required this.scale,
     required this.isSmallPhone,
     required this.isTablet,
-    required this.participantPercent,
+    required this.eventText,
   });
 
   @override
   Widget build(BuildContext context) {
-    final pct = participantPercent.clamp(0.0, 1.0);
-    final pctText = "${(pct * 100).round()}%";
-
     final iconSize = isSmallPhone ? 16.0 : 18.0;
     final titleSize = isSmallPhone ? 13.0 : 14.0;
-
-    final pctSize = isSmallPhone ? 18.0 : 20.0;
-    final barH = isSmallPhone ? 12.0 : 14.0;
-    final gapTop = isSmallPhone ? 8.0 : 10.0;
+    final bodySize = isSmallPhone ? 12.5 : 13.5;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
@@ -908,47 +1007,77 @@ class _MiniInfoCard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Header: icon + title + small pill
                 Row(
                   children: [
                     FaIcon(
-                      FontAwesomeIcons.userGroup,
+                      FontAwesomeIcons.bullhorn,
                       color: Colors.white.withOpacity(.92),
                       size: iconSize,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        "ຄະແນນການມີສ່ວນຮ່ວມ",
+                        "Event & Announcement",
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.white.withOpacity(.98),
                           fontWeight: FontWeight.w900,
                           fontSize: titleSize,
                           height: 1.0,
                         ),
                       ),
                     ),
-                    Text(
-                      pctText,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(.98),
-                        fontWeight: FontWeight.w900,
-                        fontSize: pctSize,
-                        height: 1.0,
-                        letterSpacing: .2,
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isSmallPhone ? 8 : 10,
+                        vertical: isSmallPhone ? 4 : 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(.12),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(.18),
+                        ),
+                      ),
+                      child: Text(
+                        "Today",
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(.92),
+                          fontWeight: FontWeight.w800,
+                          fontSize: isSmallPhone ? 10.0 : 11.0,
+                          height: 1.0,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: gapTop),
+
+                SizedBox(height: isSmallPhone ? 8.0 : 10.0),
+
+                // Body: calendar icon + event text
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    FaIcon(
+                      FontAwesomeIcons.calendarDays,
+                      color: Colors.white.withOpacity(.85),
+                      size: isSmallPhone ? 14.0 : 15.0,
+                    ),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: _PercentBar(
-                        height: barH,
-                        value: pct,
-                        isSmallPhone: isSmallPhone,
+                      child: Text(
+                        eventText,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(.95),
+                          fontWeight: FontWeight.w900,
+                          fontSize: bodySize,
+                          height: 1.10,
+                          letterSpacing: .2,
+                        ),
                       ),
                     ),
                   ],
@@ -962,6 +1091,7 @@ class _MiniInfoCard extends StatelessWidget {
   }
 }
 
+// ✅ Percent bar
 class _PercentBar extends StatelessWidget {
   final double height;
   final double value;
@@ -982,30 +1112,91 @@ class _PercentBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final v01 = _to01(value);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(.35),
+    return LayoutBuilder(
+      builder: (context, c) {
+        final w = c.maxWidth;
+
+        return ClipRRect(
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withOpacity(.25), width: 1.2),
-        ),
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: v01),
-          duration: const Duration(milliseconds: 650),
-          curve: Curves.easeOutCubic,
-          builder: (context, t, _) {
-            return FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: t,
-              child: Container(
-                decoration: BoxDecoration(color: Colors.white.withOpacity(.95)),
+          child: Container(
+            height: height,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(.16),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: Colors.white.withOpacity(.30),
+                width: 1,
               ),
-            );
-          },
-        ),
-      ),
+            ),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: v01),
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, _) {
+                final markerLeft = (w * t - 1).clamp(0.0, w - 2.0);
+
+                return Stack(
+                  children: [
+                    FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: t,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Colors.white.withOpacity(.98),
+                              Colors.white.withOpacity(.86),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 1,
+                        color: Colors.white.withOpacity(.40),
+                      ),
+                    ),
+                    Positioned(
+                      left: markerLeft,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 2,
+                        color: Colors.white.withOpacity(.95),
+                      ),
+                    ),
+                    Positioned(
+                      left: (markerLeft - 3).clamp(0.0, w - 8.0),
+                      top: (height / 2 - 4).clamp(0.0, height - 8.0),
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(.98),
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                              color: Colors.black.withOpacity(.22),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -1382,7 +1573,7 @@ class _GlowBlob extends StatelessWidget {
 }
 
 // =====================
-// ✅ Tap helper (นุ่มๆ แบบ iOS)
+// ✅ Tap helper
 // =====================
 class _TapScale extends StatefulWidget {
   final Widget child;
@@ -1415,7 +1606,7 @@ class _TapScaleState extends State<_TapScale> {
 }
 
 // =====================
-// ✅ Placeholder pages (เปลี่ยนเป็นของจริงได้)
+// ✅ Placeholder pages
 // =====================
 class AttendanceCalendarPage extends StatelessWidget {
   const AttendanceCalendarPage({super.key});
@@ -1437,6 +1628,18 @@ class ParticipantPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Participant")),
       body: const Center(child: Text("ParticipantPage()")),
+    );
+  }
+}
+
+class EventAnnouncementPage extends StatelessWidget {
+  const EventAnnouncementPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Event & Announcement")),
+      body: const Center(child: Text("EventAnnouncementPage()")),
     );
   }
 }
