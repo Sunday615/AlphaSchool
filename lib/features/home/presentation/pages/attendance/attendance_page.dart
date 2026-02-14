@@ -104,7 +104,7 @@ class _AttendancePageState extends State<AttendancePage> {
               );
 
               return AppPageTemplate(
-                title: "Attendance",
+                title: "ຕິດຕາມການມາໂຮງຮຽນ",
                 backgroundAsset: _bgAsset,
                 scrollable: false,
                 contentPadding: const EdgeInsets.fromLTRB(16, 14, 16, 16),

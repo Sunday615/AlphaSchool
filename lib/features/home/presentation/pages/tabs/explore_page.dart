@@ -1,10 +1,14 @@
 import 'dart:ui';
 import 'package:alpha_school/core/widgets/scanqrcode/scan_qr_code_page.dart';
 import 'package:alpha_school/features/demo/DemoTest.dart';
+import 'package:alpha_school/features/home/presentation/pages/appointment/appointment_page.dart';
 import 'package:alpha_school/features/home/presentation/pages/attendance/attendance_page.dart';
 import 'package:alpha_school/features/home/presentation/pages/calendar/calendar_page.dart';
+import 'package:alpha_school/features/home/presentation/pages/calendar/calendar_year.dart';
 import 'package:alpha_school/features/home/presentation/pages/contact/contact_page.dart';
+import 'package:alpha_school/features/home/presentation/pages/gallery/gallery_page.dart';
 import 'package:alpha_school/features/home/presentation/pages/saving/saving_page.dart';
+import 'package:alpha_school/features/home/presentation/pages/task/task_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -309,7 +313,7 @@ class ExplorePage extends StatelessWidget {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
                                             builder: (_) =>
-                                                const CalendarPage(),
+                                                const YearCalendarPage(),
                                           ),
                                         );
                                       },
@@ -1123,12 +1127,22 @@ class _WalletSheet extends StatelessWidget {
       _QuickMenuItem(
         icon: FontAwesomeIcons.images,
         label: "ຄັງຮູບພາບ",
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const GalleryPage()),
+          );
+        },
       ),
       _QuickMenuItem(
         icon: FontAwesomeIcons.userClock,
         label: "ນັດໝາຍ",
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AppointmentPage()),
+          );
+        },
       ),
       _QuickMenuItem(
         icon: FontAwesomeIcons.book,
@@ -1138,7 +1152,12 @@ class _WalletSheet extends StatelessWidget {
       _QuickMenuItem(
         icon: FontAwesomeIcons.plus,
         label: "ວຽກພິເສດ",
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const TaskPage()),
+          );
+        },
       ),
       _QuickMenuItem(
         icon: FontAwesomeIcons.fileAlt,

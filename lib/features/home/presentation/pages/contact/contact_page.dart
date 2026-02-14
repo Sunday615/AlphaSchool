@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/widgets/app_page_template.dart';
 
 /// ✅ Model: Contact info ของโรงเรียน
 class SchoolContactInfo {
@@ -52,9 +52,14 @@ class SchoolContactInfo {
 class ContactPage extends StatelessWidget {
   final SchoolContactInfo info;
 
-  const ContactPage({super.key, this.info = SchoolContactInfo.demo});
+  /// ✅ ใช้ background ของ template (รูปดิบ 100%)
+  final String backgroundAsset;
 
-  static const double _maxWidth = 620;
+  const ContactPage({
+    super.key,
+    this.info = SchoolContactInfo.demo,
+    this.backgroundAsset = 'assets/images/homepagewall/mainbg.jpeg',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,60 +81,17 @@ class ContactPage extends StatelessWidget {
               final cs = t.colorScheme;
               final isDark = t.brightness == Brightness.dark;
 
-              // ✅ Clean white/grey modern background
-              final bg = Stack(
-                children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: isDark
-                              ? [
-                                  const Color(0xFF0F141B),
-                                  const Color(0xFF0B0F14),
-                                ]
-                              : [
-                                  const Color(0xFFF7F8FA),
-                                  const Color(0xFFFFFFFF),
-                                ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  // subtle soft glow (very light)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            center: const Alignment(0.0, -0.95),
-                            radius: 1.2,
-                            colors: [
-                              cs.primary.withOpacity(isDark ? .10 : .08),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-
-              // ✅ Clean card colors
+              // ✅ make card look correct inside template big container
               final cardColor = isDark
-                  ? const Color(0xFF121924).withOpacity(.92)
-                  : Colors.white;
+                  ? Colors.white.withOpacity(.06)
+                  : const Color(0xFFFFFFFF);
 
               final border = isDark
-                  ? Colors.white.withOpacity(.08)
+                  ? Colors.white.withOpacity(.10)
                   : Colors.black.withOpacity(.06);
 
-              final shadow = Colors.black.withOpacity(isDark ? .32 : .08);
-
-              final muted = cs.onSurface.withOpacity(.65);
+              final shadow = Colors.black.withOpacity(isDark ? .45 : .10);
+              final muted = cs.onSurface.withOpacity(.70);
 
               final items = <_ContactItem>[
                 _ContactItem(
@@ -171,72 +133,55 @@ class ContactPage extends StatelessWidget {
                 ),
               ];
 
-              return Scaffold(
-                backgroundColor: Colors.transparent,
-                extendBodyBehindAppBar: true,
-                appBar: AppBar(
-                  title: const Text('Contact'),
-                  centerTitle: true,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  foregroundColor: cs.onSurface,
-                ),
-                body: Stack(
+              return AppPageTemplate(
+                title: 'ຕິດຕໍ່ໂຮງຮຽນ',
+                backgroundAsset: backgroundAsset,
+
+                /// template already animates bg/topbar/container
+                animate: true,
+                showBack: true,
+
+                /// ✅ let template do scrolling; inside just Column (no scroll)
+                scrollable: true,
+                contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+
+                /// ✅ keep premium dark gradient on dark mode
+                premiumDark: true,
+
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    bg,
-                    SafeArea(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: _maxWidth,
-                          ),
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _HeaderCard(
-                                      info: info,
-                                      border: border,
-                                      shadow: shadow,
-                                    )
-                                    .animate()
-                                    .fadeIn(duration: 180.ms)
-                                    .slideY(
-                                      begin: .05,
-                                      end: 0,
-                                      duration: 200.ms,
-                                      curve: Curves.easeOut,
-                                    ),
-                                const SizedBox(height: 14),
-                                _ContactCard(
-                                      items: items,
-                                      cardColor: cardColor,
-                                      border: border,
-                                      shadow: shadow,
-                                    )
-                                    .animate()
-                                    .fadeIn(delay: 60.ms, duration: 200.ms)
-                                    .slideY(
-                                      begin: .04,
-                                      end: 0,
-                                      duration: 220.ms,
-                                      curve: Curves.easeOut,
-                                    ),
-                                const SizedBox(height: 14),
-                                Text(
-                                  '',
-                                  textAlign: TextAlign.center,
-                                  style: t.textTheme.bodySmall?.copyWith(
-                                    color: muted,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                    _HeaderCard(info: info, shadow: shadow)
+                        .animate()
+                        .fadeIn(duration: 180.ms)
+                        .slideY(
+                          begin: .05,
+                          end: 0,
+                          duration: 220.ms,
+                          curve: Curves.easeOut,
                         ),
+                    const SizedBox(height: 14),
+                    _ContactCard(
+                          items: items,
+                          cardColor: cardColor,
+                          border: border,
+                          shadow: shadow,
+                        )
+                        .animate()
+                        .fadeIn(delay: 60.ms, duration: 220.ms)
+                        .slideY(
+                          begin: .04,
+                          end: 0,
+                          duration: 240.ms,
+                          curve: Curves.easeOut,
+                        ),
+                    const SizedBox(height: 14),
+                    Text(
+                      '',
+                      textAlign: TextAlign.center,
+                      style: t.textTheme.bodySmall?.copyWith(
+                        color: muted,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -252,14 +197,9 @@ class ContactPage extends StatelessWidget {
 
 class _HeaderCard extends StatelessWidget {
   final SchoolContactInfo info;
-  final Color border;
   final Color shadow;
 
-  const _HeaderCard({
-    required this.info,
-    required this.border,
-    required this.shadow,
-  });
+  const _HeaderCard({required this.info, required this.shadow});
 
   @override
   Widget build(BuildContext context) {
@@ -401,9 +341,12 @@ class _ContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    final cs = t.colorScheme;
     final isDark = t.brightness == Brightness.dark;
 
-    final dividerColor = Colors.black.withOpacity(isDark ? .20 : .06);
+    final dividerColor = isDark
+        ? Colors.white.withOpacity(.10)
+        : Colors.black.withOpacity(.06);
 
     return Container(
       decoration: BoxDecoration(
@@ -439,11 +382,14 @@ class _ContactCard extends StatelessWidget {
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Copied'),
-        duration: Duration(milliseconds: 900),
+      SnackBar(
+        content: const Text('Copied'),
+        duration: const Duration(milliseconds: 900),
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF0B2B5B)
+            : null,
       ),
     );
   }
@@ -466,13 +412,13 @@ class _ContactRow extends StatelessWidget {
 
     final hasValue = item.value.trim().isNotEmpty;
 
-    // ✅ Clean modern icon bubble (grey) + colored icon
+    // ✅ icon bubble
     final bubbleBg = isDark
-        ? Colors.white.withOpacity(.06)
+        ? Colors.white.withOpacity(.10)
         : const Color(0xFFF3F4F6);
 
     final bubbleBorder = isDark
-        ? Colors.white.withOpacity(.10)
+        ? Colors.white.withOpacity(.12)
         : Colors.black.withOpacity(.06);
 
     return InkWell(
@@ -493,11 +439,7 @@ class _ContactRow extends StatelessWidget {
                 border: Border.all(color: bubbleBorder),
               ),
               child: Center(
-                child: FaIcon(
-                  item.icon,
-                  color: item.iconColor,
-                  size: 18, // FontAwesome looks best slightly smaller
-                ),
+                child: FaIcon(item.icon, color: item.iconColor, size: 18),
               ),
             ),
             const SizedBox(width: 12),
@@ -528,14 +470,12 @@ class _ContactRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-
-            // ✅ copy icon (subtle grey) -> FontAwesome
             FaIcon(
               FontAwesomeIcons.copy,
               size: 18,
               color: hasValue
                   ? (isDark
-                        ? Colors.white.withOpacity(.65)
+                        ? Colors.white.withOpacity(.70)
                         : Colors.black.withOpacity(.45))
                   : cs.onSurface.withOpacity(.25),
             ),
