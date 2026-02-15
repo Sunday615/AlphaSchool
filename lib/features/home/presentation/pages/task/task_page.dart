@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../../core/widgets/app_page_template.dart';
+import '../../../../../core/widgets/app_modern_count_tabbar.dart';
 
 enum TaskStatus { backlog, success }
 
@@ -135,8 +136,9 @@ class _TaskPageState extends State<TaskPage>
 
   List<TaskModel> _filteredForTab(int index) {
     if (index == 0) return _all;
-    if (index == 1)
+    if (index == 1) {
       return _all.where((e) => e.status == TaskStatus.backlog).toList();
+    }
     return _all.where((e) => e.status == TaskStatus.success).toList();
   }
 
@@ -154,28 +156,33 @@ class _TaskPageState extends State<TaskPage>
     final t = Theme.of(context);
     final isDark = t.brightness == Brightness.dark;
 
-    final tabs =
-        _ModernTaskTabs(
-              controller: _tab,
-              totalCount: _totalCount,
-              backlogCount: _backlogCount,
-              successCount: _successCount,
-            )
-            .animate()
-            .fadeIn(duration: 220.ms)
-            .slideY(
-              begin: -.08,
-              end: 0,
-              duration: 420.ms,
-              curve: Curves.easeOutCubic,
-            );
+    final tabs = AppModernCountTabBar(
+      controller: _tab,
+      items: [
+        AppTabItem(
+          label: 'ທັງໝົດ',
+          icon: Icons.view_list_rounded,
+          count: _totalCount,
+        ),
+        AppTabItem(
+          label: 'ວຽກຄ້າງ',
+          icon: Icons.pending_actions_rounded,
+          count: _backlogCount,
+        ),
+        AppTabItem(
+          label: 'ສຳເລັດ',
+          icon: Icons.verified_rounded,
+          count: _successCount,
+        ),
+      ],
+    );
 
     return AppPageTemplate(
       title: 'Tasks',
       backgroundAsset: widget.backgroundAsset,
       animate: true,
       premiumDark: true,
-      showBack: true,
+      showBack: false,
       scrollable: false,
       contentPadding: EdgeInsets.zero,
       child: Column(
@@ -234,6 +241,19 @@ class _ModernTaskTabs extends StatelessWidget {
     final t = Theme.of(context);
     final isDark = t.brightness == Brightness.dark;
 
+    // ✅ Responsive tuning to prevent overflow on iPhone 14 (and smaller)
+    final w = MediaQuery.sizeOf(context).width;
+    final bool compact = w < 390;
+    final bool iPhone14Like = w <= 390;
+
+    final double tabH = (compact ? 40 : (iPhone14Like ? 42 : 44)).toDouble();
+    final double iconSize = compact ? 16 : 18;
+
+    // ✅ ลด spacing ระหว่าง icon / title / number ลงอีกนิด
+    final double gap = compact ? 5 : 7;
+
+    final double outerPad = compact ? 5 : 6;
+
     final outerBg = isDark
         ? Colors.white.withOpacity(.08)
         : Colors.white.withOpacity(.92);
@@ -247,8 +267,22 @@ class _ModernTaskTabs extends StatelessWidget {
         ? Colors.white.withOpacity(.70)
         : Colors.black.withOpacity(.55);
 
+    final labelStyle = t.textTheme.labelLarge?.copyWith(
+      fontWeight: FontWeight.w900,
+      letterSpacing: .1,
+      fontSize: compact ? 12.6 : 13.2,
+      height: 1.0,
+    );
+
+    final unselectedStyle = t.textTheme.labelLarge?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: .1,
+      fontSize: compact ? 12.6 : 13.2,
+      height: 1.0,
+    );
+
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: EdgeInsets.all(outerPad),
       decoration: BoxDecoration(
         color: outerBg,
         borderRadius: BorderRadius.circular(22),
@@ -268,14 +302,12 @@ class _ModernTaskTabs extends StatelessWidget {
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.tab,
         labelPadding: EdgeInsets.zero,
-        labelStyle: t.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w900,
-          letterSpacing: .2,
-        ),
-        unselectedLabelStyle: t.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-          letterSpacing: .2,
-        ),
+
+        // ✅ important: make tab width share evenly (prevents row overflow)
+        isScrollable: false,
+
+        labelStyle: labelStyle,
+        unselectedLabelStyle: unselectedStyle,
         labelColor: Colors.white,
         unselectedLabelColor: unselected,
         indicator: BoxDecoration(
@@ -295,19 +327,31 @@ class _ModernTaskTabs extends StatelessWidget {
         ),
         tabs: [
           _TabPill(
-            text: 'Total Task',
+            height: tabH,
+            text: 'ທັງໝົດ',
             icon: Icons.view_list_rounded,
             count: totalCount,
+            iconSize: iconSize,
+            gap: gap,
+            compact: compact,
           ),
           _TabPill(
-            text: 'Backlog',
+            height: tabH,
+            text: 'ວຽກຄ້າງ',
             icon: Icons.pending_actions_rounded,
             count: backlogCount,
+            iconSize: iconSize,
+            gap: gap,
+            compact: compact,
           ),
           _TabPill(
-            text: 'Success',
+            height: tabH,
+            text: 'ສຳເລັດ',
             icon: Icons.verified_rounded,
             count: successCount,
+            iconSize: iconSize,
+            gap: gap,
+            compact: compact,
           ),
         ],
       ),
@@ -320,7 +364,21 @@ class _TabPill extends StatelessWidget {
   final IconData icon;
   final int count;
 
-  const _TabPill({required this.text, required this.icon, required this.count});
+  // ✅ responsive params
+  final double height;
+  final double iconSize;
+  final double gap;
+  final bool compact;
+
+  const _TabPill({
+    required this.text,
+    required this.icon,
+    required this.count,
+    required this.height,
+    required this.iconSize,
+    required this.gap,
+    required this.compact,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -332,24 +390,44 @@ class _TabPill extends StatelessWidget {
     final badgeBorder = Colors.white.withOpacity(.28);
 
     return SizedBox(
-      height: 44,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 8),
-          Text(text),
-          const SizedBox(width: 8),
-          _CountBadge(count: count, bg: badgeBg, border: badgeBorder)
-              .animate()
-              .fadeIn(duration: 180.ms)
-              .scale(
-                begin: const Offset(.96, .96),
-                end: const Offset(1, 1),
-                duration: 220.ms,
-                curve: Curves.easeOutCubic,
+      height: height,
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: iconSize),
+              SizedBox(width: gap),
+              ConstrainedBox(
+                // ✅ ลด maxWidth ลงนิดให้บาลานซ์ (ไม่ดัน badge)
+                constraints: BoxConstraints(maxWidth: compact ? 78 : 92),
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
               ),
-        ],
+              SizedBox(width: gap),
+              _CountBadge(
+                    count: count,
+                    bg: badgeBg,
+                    border: badgeBorder,
+                    compact: compact,
+                  )
+                  .animate()
+                  .fadeIn(duration: 180.ms)
+                  .scale(
+                    begin: const Offset(.96, .96),
+                    end: const Offset(1, 1),
+                    duration: 220.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -359,11 +437,13 @@ class _CountBadge extends StatelessWidget {
   final int count;
   final Color bg;
   final Color border;
+  final bool compact;
 
   const _CountBadge({
     required this.count,
     required this.bg,
     required this.border,
+    this.compact = false,
   });
 
   @override
@@ -371,9 +451,12 @@ class _CountBadge extends StatelessWidget {
     final label = count > 99 ? '99+' : '$count';
 
     return Container(
-      constraints: const BoxConstraints(minWidth: 24),
-      height: 20,
-      padding: const EdgeInsets.symmetric(horizontal: 7),
+      constraints: BoxConstraints(minWidth: compact ? 22 : 24),
+      height: compact ? 18 : 20,
+
+      // ✅ ลด padding ใน badge ลงนิด (ทำให้ spacing ดูแน่นขึ้น)
+      padding: EdgeInsets.symmetric(horizontal: compact ? 5.5 : 6.5),
+
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(99),
@@ -382,10 +465,10 @@ class _CountBadge extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.w900,
-          fontSize: 11.5,
-          letterSpacing: .2,
+          fontSize: compact ? 10.8 : 11.5,
+          letterSpacing: .15,
         ),
       ),
     );
@@ -407,20 +490,26 @@ class _TaskListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final safeB = MediaQuery.of(context).padding.bottom;
+    final bottomBarH = kBottomNavigationBarHeight + 18;
+
     if (items.isEmpty) {
-      return _EmptyTasks(isDark: isDark)
-          .animate()
-          .fadeIn(duration: 220.ms)
-          .slideY(
-            begin: .05,
-            end: 0,
-            duration: 420.ms,
-            curve: Curves.easeOutCubic,
-          );
+      return Padding(
+        padding: EdgeInsets.only(bottom: safeB + bottomBarH),
+        child: _EmptyTasks(isDark: isDark)
+            .animate()
+            .fadeIn(duration: 220.ms)
+            .slideY(
+              begin: .05,
+              end: 0,
+              duration: 420.ms,
+              curve: Curves.easeOutCubic,
+            ),
+      );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
+      padding: EdgeInsets.fromLTRB(14, 10, 14, 16 + safeB + bottomBarH),
       itemCount: items.length,
       itemBuilder: (context, i) {
         final task = items[i];
@@ -835,7 +924,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       contentPadding: EdgeInsets.zero,
       child: Column(
         children: [
-          // ===== Card (same as TaskPage) =====
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
             child: _TaskCard(task: widget.task)
@@ -848,8 +936,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   curve: Curves.easeOutCubic,
                 ),
           ),
-
-          // ===== Chatroom =====
           Expanded(
             child:
                 _ChatRoom(
@@ -866,8 +952,6 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       curve: Curves.easeOutCubic,
                     ),
           ),
-
-          // ===== Composer =====
           SafeArea(
             top: false,
             child:

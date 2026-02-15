@@ -3,33 +3,22 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 class AppPageTemplate extends StatelessWidget {
   final String title;
-
-  /// content ข้างใน "กล่องใหญ่"
   final Widget child;
-
-  /// background asset (รูปดิบ 100% ไม่มี overlay)
   final String backgroundAsset;
 
-  /// กด back (ถ้าไม่ส่งมา จะใช้ Navigator.maybePop)
+  /// ถ้าส่งมา จะใช้ action นี้แทน pop
   final VoidCallback? onBack;
 
-  /// ปรับให้ scroll ได้/ไม่ได้
   final bool scrollable;
-
-  /// padding ภายในกล่องใหญ่
   final EdgeInsets contentPadding;
-
-  /// animate เปิด/ปิด
   final bool animate;
-
-  /// ใช้ปุ่ม back หรือไม่
   final bool showBack;
 
-  /// ✅ NEW: ใช้ premium dark gradient ในโหมด dark
   final bool premiumDark;
-
-  /// ✅ NEW: override gradient ได้ (ถ้าไม่ส่งมา จะใช้ค่า default)
   final Gradient? premiumDarkGradient;
+
+  /// ✅ ถ้าส่งมา จะกด back แล้วไป route นี้แบบ removeUntil
+  final String? backToRouteName;
 
   const AppPageTemplate({
     super.key,
@@ -43,6 +32,7 @@ class AppPageTemplate extends StatelessWidget {
     this.showBack = true,
     this.premiumDark = true,
     this.premiumDarkGradient,
+    this.backToRouteName,
   });
 
   @override
@@ -71,11 +61,37 @@ class AppPageTemplate extends StatelessWidget {
           );
     }
 
+    // ✅ back behavior (ใช้กับปุ่มใน AppBar)
+    VoidCallback backAction() {
+      if (onBack != null) return onBack!;
+      if (backToRouteName != null) {
+        return () => Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(backToRouteName!, (r) => false);
+      }
+      return () => Navigator.maybePop(context);
+    }
+
+    // ✅ system back/gesture behavior (ให้เหมือน backAction)
+    Future<bool> onWillPop() async {
+      if (onBack != null) {
+        onBack!.call();
+        return false;
+      }
+      if (backToRouteName != null) {
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(backToRouteName!, (r) => false);
+        return false;
+      }
+      return true;
+    }
+
     // ===== TopBar =====
     Widget topBar = AppTemplateTopBar(
       title: title,
       showBack: showBack,
-      onBack: onBack ?? () => Navigator.maybePop(context),
+      onBack: backAction(),
     );
 
     if (animate) {
@@ -90,7 +106,7 @@ class AppPageTemplate extends StatelessWidget {
           );
     }
 
-    // ===== Big Container Decoration (Light = White, Dark = Premium Gradient) =====
+    // ===== Big Container Decoration =====
     final Gradient darkGrad =
         premiumDarkGradient ??
         const LinearGradient(
@@ -102,7 +118,7 @@ class AppPageTemplate extends StatelessWidget {
     final BoxDecoration bigDeco = (isDark && premiumDark)
         ? BoxDecoration(
             gradient: darkGrad,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(color: Colors.white.withOpacity(.10)),
             boxShadow: [
               BoxShadow(
@@ -114,7 +130,7 @@ class AppPageTemplate extends StatelessWidget {
           )
         : BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
                 blurRadius: 30,
@@ -124,9 +140,8 @@ class AppPageTemplate extends StatelessWidget {
             ],
           );
 
-    // ===== White/Dark Big Container =====
     Widget bigContainer = ClipRRect(
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       child: Container(
         width: double.infinity,
         decoration: bigDeco,
@@ -148,39 +163,39 @@ class AppPageTemplate extends StatelessWidget {
           );
     }
 
-    return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF070B12)
-          : const Color(0xFFF4F6FF),
-      body: Stack(
-        children: [
-          bg,
-          SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 6),
-
-                // Top bar spacing + padding
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: topBar,
-                ),
-
-                const SizedBox(height: 14),
-
-                // Big container
-                Expanded(
-                  child: Padding(
+    return WillPopScope(
+      onWillPop: onWillPop,
+      child: Scaffold(
+        backgroundColor: isDark
+            ? const Color(0xFF070B12)
+            : const Color(0xFFF4F6FF),
+        body: Stack(
+          children: [
+            bg,
+            SafeArea(
+              // ✅ ไม่เว้นขอบล่าง เพื่อให้ card ลงไปเต็มล่าง
+              bottom: false,
+              child: Column(
+                children: [
+                  const SizedBox(height: 6),
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: bigContainer,
+                    child: topBar,
                   ),
-                ),
+                  const SizedBox(height: 14),
 
-                const SizedBox(height: 12),
-              ],
+                  // ✅ Expanded ให้กินพื้นที่ถึงล่างสุด (ไม่มีช่องว่างท้าย)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: bigContainer,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -55,52 +55,26 @@
 ├── assets
 │   ├── icons
 │   ├── images
+│   │   ├── homepagewall
+│   │   │   ├── homepagewallpaper.jpg
+│   │   │   └── mainbg.jpeg
+│   │   └── logo
+│   │       └── alphalogo.JPG
 │   └── l10n
 │       ├── app_en.arb
 │       └── app_la.arb
 ├── build
-│   ├── 32ca45d2da8397d18385f6625abe299c
-│   │   ├── _composite.stamp
-│   │   ├── dart_build_result.json
-│   │   ├── dart_build.d
-│   │   ├── dart_build.stamp
-│   │   ├── gen_dart_plugin_registrant.stamp
-│   │   ├── gen_localizations.stamp
-│   │   └── outputs.json
-│   ├── f537d389bd7fe17e116f8b847863fcdd.cache.dill.track.dill
-│   ├── flutter_assets
-│   │   ├── AssetManifest.bin
-│   │   ├── AssetManifest.bin.json
-│   │   ├── assets
-│   │   │   └── l10n
-│   │   │       ├── app_en.arb
-│   │   │       └── app_la.arb
-│   │   ├── FontManifest.json
-│   │   ├── fonts
-│   │   │   └── MaterialIcons-Regular.otf
-│   │   ├── NOTICES
-│   │   ├── packages
-│   │   │   ├── cupertino_icons
-│   │   │   │   └── assets
-│   │   │   │       └── CupertinoIcons.ttf
-│   │   │   └── font_awesome_flutter
-│   │   │       └── lib
-│   │   │           └── fonts
-│   │   │               ├── Font-Awesome-7-Brands-Regular-400.otf
-│   │   │               ├── Font-Awesome-7-Free-Regular-400.otf
-│   │   │               └── Font-Awesome-7-Free-Solid-900.otf
-│   │   └── shaders
-│   │       ├── ink_sparkle.frag
-│   │       └── stretch_effect.frag
-│   ├── macos
 │   ├── native_assets
 │   │   └── web
-│   ├── native_hooks
 │   └── web
 │       ├── assets
 │       │   ├── AssetManifest.bin
 │       │   ├── AssetManifest.bin.json
 │       │   ├── assets
+│       │   │   ├── images
+│       │   │   │   └── homepagewall
+│       │   │   │       ├── homepagewallpaper.jpg
+│       │   │   │       └── mainbg.jpeg
 │       │   │   └── l10n
 │       │   │       ├── app_en.arb
 │       │   │       └── app_la.arb
@@ -112,12 +86,18 @@
 │       │   │   ├── cupertino_icons
 │       │   │   │   └── assets
 │       │   │   │       └── CupertinoIcons.ttf
-│       │   │   └── font_awesome_flutter
-│       │   │       └── lib
-│       │   │           └── fonts
-│       │   │               ├── Font-Awesome-7-Brands-Regular-400.otf
-│       │   │               ├── Font-Awesome-7-Free-Regular-400.otf
-│       │   │               └── Font-Awesome-7-Free-Solid-900.otf
+│       │   │   ├── font_awesome_flutter
+│       │   │   │   └── lib
+│       │   │   │       └── fonts
+│       │   │   │           ├── Font-Awesome-7-Brands-Regular-400.otf
+│       │   │   │           ├── Font-Awesome-7-Free-Regular-400.otf
+│       │   │   │           └── Font-Awesome-7-Free-Solid-900.otf
+│       │   │   ├── remixicon
+│       │   │   │   └── fonts
+│       │   │   │       └── Remix.ttf
+│       │   │   └── timezone
+│       │   │       └── data
+│       │   │           └── latest_all.tzf
 │       │   └── shaders
 │       │       ├── ink_sparkle.frag
 │       │       └── stretch_effect.frag
@@ -220,7 +200,10 @@
 │   │   │   ├── app_colors.dart
 │   │   │   └── app_theme.dart
 │   │   └── widgets
-│   │       └── app_bottom_nav.dart
+│   │       ├── app_bottom_nav.dart
+│   │       ├── app_page_template.dart
+│   │       └── scanqrcode
+│   │           └── scan_qr_code_page.dart
 │   ├── features
 │   │   ├── announcements
 │   │   ├── auth
@@ -229,16 +212,49 @@
 │   │   │   └── presentation
 │   │   │       └── pages
 │   │   │           └── login_page.dart
+│   │   ├── demo
+│   │   │   └── DemoTest.dart
 │   │   ├── grades
 │   │   ├── home
 │   │   │   └── presentation
 │   │   │       └── pages
+│   │   │           ├── appointment
+│   │   │           │   └── appointment_page.dart
+│   │   │           ├── attendance
+│   │   │           │   └── attendance_page.dart
+│   │   │           ├── calendar
+│   │   │           │   ├── calendar_page.dart
+│   │   │           │   └── calendar_year.dart
+│   │   │           ├── common
+│   │   │           │   └── feature_placeholder_page.dart
+│   │   │           ├── contact
+│   │   │           │   └── contact_page.dart
+│   │   │           ├── gallery
+│   │   │           │   ├── gallery_detail
+│   │   │           │   │   └── gallery_detail_page.dart
+│   │   │           │   ├── gallery_models.dart
+│   │   │           │   └── gallery_page.dart
 │   │   │           ├── home_shell_page.dart
+│   │   │           ├── homework
+│   │   │           │   └── homework_page.dart
+│   │   │           ├── news
+│   │   │           │   └── news_page.dart
+│   │   │           ├── participant
+│   │   │           │   └── participant_page.dart
+│   │   │           ├── report
+│   │   │           │   └── report_page.dart
+│   │   │           ├── saving
+│   │   │           │   └── saving_page.dart
 │   │   │           ├── tabs
 │   │   │           │   ├── alerts_page.dart
 │   │   │           │   ├── explore_page.dart
 │   │   │           │   ├── profile_page.dart
+│   │   │           │   ├── setting_page.dart
 │   │   │           │   └── shop_page.dart
+│   │   │           ├── task
+│   │   │           │   ├── task_detail
+│   │   │           │   │   └── task_detail_page.dart
+│   │   │           │   └── task_page.dart
 │   │   │           └── year_picker_page.dart
 │   │   ├── students
 │   │   │   └── presentation
@@ -312,6 +328,7 @@
 ├── README.md
 ├── test
 │   └── widget_test.dart
+├── tree.txt
 ├── web
 │   ├── favicon.png
 │   ├── icons
@@ -321,6 +338,7 @@
 │   │   └── Icon-maskable-512.png
 │   ├── index.html
 │   └── manifest.json
+├── web_entrypoint.dart
 ├── windows
 │   ├── CMakeLists.txt
 │   ├── flutter
@@ -346,4 +364,4 @@
 └── y
     └── index.html
 
-133 directories, 214 files
+143 directories, 222 files

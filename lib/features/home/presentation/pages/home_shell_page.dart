@@ -8,15 +8,19 @@ import '../../../../shared/models/student_card_item.dart';
 
 //Tab pages list at homepage
 import 'tabs/explore_page.dart';
-import 'tabs/shop_page.dart';
-import 'tabs/alerts_page.dart';
+import 'tabs/classroom.dart';
+import 'tabs/score.dart';
 import 'tabs/profile_page.dart';
 import 'tabs/setting_page.dart';
 
 class HomeShellPage extends StatefulWidget {
-  final StudentCardItem selectedStudent;
+  /// ✅ ทำให้ nullable กันเคสเข้า route นี้โดยไม่ได้ส่ง student (เช่น back มาจาก page อื่น)
+  final StudentCardItem? selectedStudent;
 
-  const HomeShellPage({super.key, required this.selectedStudent});
+  /// ✅ สามารถกำหนดแท็บเริ่มต้นได้ (0=Explore)
+  final int initialIndex;
+
+  const HomeShellPage({super.key, this.selectedStudent, this.initialIndex = 0});
 
   @override
   State<HomeShellPage> createState() => _HomeShellPageState();
@@ -25,6 +29,7 @@ class HomeShellPage extends StatefulWidget {
 class _HomeShellPageState extends State<HomeShellPage>
     with SingleTickerProviderStateMixin {
   int _index = 0;
+  bool _didInitFromArgs = false;
 
   late final AnimationController _ctrl = AnimationController(
     vsync: this,
@@ -106,6 +111,29 @@ class _HomeShellPageState extends State<HomeShellPage>
   }
 
   @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex.clamp(0, 4);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // ✅ รองรับ route arguments: {'tab': 0}
+    if (_didInitFromArgs) return;
+    _didInitFromArgs = true;
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map) {
+      final tab = args['tab'];
+      if (tab is int) {
+        _index = tab.clamp(0, 4);
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _ctrl.dispose();
     super.dispose();
@@ -116,6 +144,17 @@ class _HomeShellPageState extends State<HomeShellPage>
         ? AppTheme.darkTheme(locale)
         : AppTheme.lightTheme(locale);
     return base.copyWith(scaffoldBackgroundColor: Colors.transparent);
+  }
+
+  // ✅ Android back / iOS gesture:
+  // - ถ้าไม่ได้อยู่แท็บ Explore -> สลับกลับ Explore ก่อน (BottomNav ไม่หายแน่นอน)
+  // - ถ้าอยู่ Explore แล้ว -> ให้ระบบทำงานปกติ (ออกแอป/กลับหน้าอื่น)
+  Future<bool> _onWillPop() async {
+    if (_index != 0) {
+      setState(() => _index = 0);
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -136,12 +175,12 @@ class _HomeShellPageState extends State<HomeShellPage>
               final isDark = Theme.of(context).brightness == Brightness.dark;
               final bg = isDark ? AppColors.dark : Colors.white;
 
-              final pages = const <Widget>[
-                ExplorePage(),
-                ShopPage(),
-                AlertsPage(),
-                ProfilePage(),
-                SettingPage(),
+              final pages = <Widget>[
+                const ExplorePage(),
+                const ClassroomPage(),
+                const StudyPlanPage(),
+                const ProfilePage(),
+                const SettingPage(),
               ];
 
               final navItems = const [
@@ -164,27 +203,33 @@ class _HomeShellPageState extends State<HomeShellPage>
                 AppBottomNavItem(icon: FontAwesomeIcons.gear, label: "ຕັ້ງຄ່າ"),
               ];
 
-              return Scaffold(
-                backgroundColor: bg,
-                extendBody: true,
+              return WillPopScope(
+                onWillPop: _onWillPop,
+                child: Scaffold(
+                  backgroundColor: bg,
+                  extendBody: true,
 
-                bottomNavigationBar: AppBottomNav(
-                  currentIndex: _index,
-                  onChanged: (i) => setState(() => _index = i),
-                  items: navItems,
-                  onPlusPressed: _onPlus,
-                ),
+                  bottomNavigationBar: AppBottomNav(
+                    currentIndex: _index,
+                    onChanged: (i) => setState(() => _index = i),
+                    items: navItems,
+                    onPlusPressed: _onPlus,
+                  ),
 
-                // ✅ ลบ Student Header ออกแล้ว เหลือแค่ content
-                body: FadeTransition(
-                  opacity: _fade,
-                  child: SafeArea(
-                    bottom: false,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 240),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeOutCubic,
-                      child: pages[_index],
+                  body: FadeTransition(
+                    opacity: _fade,
+                    child: SafeArea(
+                      bottom: false,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 240),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeOutCubic,
+                        // ✅ ใส่ key ชัดๆ ให้ switcher ทำงานนิ่ง
+                        child: KeyedSubtree(
+                          key: ValueKey<int>(_index),
+                          child: pages[_index],
+                        ),
+                      ),
                     ),
                   ),
                 ),

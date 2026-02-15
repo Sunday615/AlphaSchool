@@ -1,3 +1,5 @@
+import 'package:alpha_school/features/home/presentation/pages/home_shell_page.dart';
+import 'package:alpha_school/features/home/presentation/pages/tabs/explore_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -16,10 +18,7 @@ class CConnectApp extends StatefulWidget {
 }
 
 class _CConnectAppState extends State<CConnectApp> {
-  // ✅ default เป็น Light mode
   ThemeMode _mode = ThemeMode.light;
-
-  // ✅ default locale
   Locale _locale = const Locale('en');
 
   void _toggleTheme() {
@@ -28,7 +27,6 @@ class _CConnectAppState extends State<CConnectApp> {
     });
   }
 
-  // (ถ้ายังไม่ได้ทำปุ่มสลับภาษาไว้ ใช้อันนี้ได้)
   void _setLocale(Locale locale) {
     setState(() => _locale = locale);
   }
@@ -38,29 +36,25 @@ class _CConnectAppState extends State<CConnectApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      // ✅ theme ตามภาษา (en=Inter, lo=NotoSansLao)
       theme: AppTheme.lightTheme(_locale),
       darkTheme: AppTheme.darkTheme(_locale),
       themeMode: _mode,
 
       locale: _locale,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('lo'),
-        Locale('th'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('lo'), Locale('th')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
 
+      // ✅ ADD: routes
+      routes: {'/homeShell': (_) => const HomeShellPage()},
+
       home: YearPickerPage(
         onToggleTheme: _toggleTheme,
         themeMode: _mode,
-
-        // ✅ optional: ถ้าหน้า YearPicker มีปุ่มเลือกภาษา ให้เรียกอันนี้
-        // ถ้า YearPicker ของคุณยังไม่มี ก็ลบบรรทัดนี้ได้
+        // onSetLocale: _setLocale, // ถ้าคุณมีปุ่มเลือกภาษาใน YearPicker
       ),
     );
   }
