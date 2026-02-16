@@ -203,7 +203,10 @@ class _SavingPageState extends State<SavingPage> with TickerProviderStateMixin {
                 backgroundAsset: _bgAsset,
                 scrollable: false,
                 premiumDark: true,
-                onBack: () => Navigator.of(context).maybePop(),
+
+                // ✅ ให้ back ทำงานเหมือน ContactPage (Template handle pop เอง)
+                showBack: true,
+
                 contentPadding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                 child: SizedBox.expand(
                   child: Align(
@@ -561,7 +564,6 @@ class _SavingTabBody extends StatelessWidget {
                   textMuted: textMuted,
                   rowsCount: rows.length,
                 ).animate().fadeIn(duration: 180.ms),
-
                 Expanded(
                   child: rows.isEmpty
                       ? Center(
@@ -595,12 +597,11 @@ class _SavingTabBody extends StatelessWidget {
                           },
                         ),
                 ),
-
                 _SavingDetailPremium(
                       view: view,
                       border: border,
-                      onWithdraw: onWithdraw, // ✅ null = ซ่อนปุ่ม
-                      typeLabel: typeLabel, // ✅ ส่ง type เข้าไป
+                      onWithdraw: onWithdraw,
+                      typeLabel: typeLabel,
                     )
                     .animate()
                     .fadeIn(duration: 240.ms, delay: 70.ms)
@@ -853,8 +854,6 @@ class _SavingDetailPremium extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-
-          // ✅ detail card container
           Container(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
             decoration: BoxDecoration(
@@ -864,7 +863,6 @@ class _SavingDetailPremium extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // ✅ NEW: Type line
                 _DetailLine(
                   label: "ປະເພດ :",
                   value: typeLabel,
@@ -875,7 +873,6 @@ class _SavingDetailPremium extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Divider(height: 1, thickness: 1, color: lineC),
                 ),
-
                 _DetailLine(
                   label: "ຍອດຍົກມາ :",
                   value: latestText,
@@ -933,8 +930,6 @@ class _SavingDetailPremium extends StatelessWidget {
               ],
             ),
           ),
-
-          // ✅ แสดงปุ่มเฉพาะ Personal
           if (onWithdraw != null) ...[
             const SizedBox(height: 12),
             _BigWithdrawButton(onTap: onWithdraw!),
@@ -993,7 +988,7 @@ class _BigWithdrawButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const btnColor = Color(0xFF3B5FD9); // ✅ #3b5fd9
+    const btnColor = Color(0xFF3B5FD9);
 
     return Material(
       color: Colors.transparent,

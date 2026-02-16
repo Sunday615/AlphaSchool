@@ -182,7 +182,10 @@ class _TaskPageState extends State<TaskPage>
       backgroundAsset: widget.backgroundAsset,
       animate: true,
       premiumDark: true,
-      showBack: false,
+
+      // ✅ FIX: ให้มีลูกศร back และกดแล้ว pop เหมือนหน้า ContactPage
+      showBack: true,
+
       scrollable: false,
       contentPadding: EdgeInsets.zero,
       child: Column(
