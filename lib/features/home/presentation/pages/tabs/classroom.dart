@@ -82,22 +82,6 @@ class _ClassroomPageState extends State<ClassroomPage> {
   int _filter = 0; // 0=all, 1=not sent, 2=done
   late final ClassroomData _data = widget.data ?? _mock();
 
-  // ✅ เปลี่ยน route ให้ตรงโปรเจกต์
-  static const String _exploreRouteName = '/explore';
-
-  // ✅ กด back แล้วไป Explore (แทน pop)
-  void _goExplore() {
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(_exploreRouteName, (route) => false);
-  }
-
-  // ✅ system back/gesture: go Explore
-  Future<bool> _onWillPop() async {
-    _goExplore();
-    return false; // ✅ กันไม่ให้ pop ซ้อน
-  }
-
   @override
   Widget build(BuildContext context) {
     final data = _data;
@@ -120,102 +104,95 @@ class _ClassroomPageState extends State<ClassroomPage> {
 
     final ratio = data.homeworks.isEmpty ? 0.0 : done / data.homeworks.length;
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: AppPageTemplate(
-        title: "Classroom",
-        backgroundAsset: "assets/images/homepagewall/mainbg.jpeg",
-        showBack: true,
+    return AppPageTemplate(
+      title: "Classroom",
+      backgroundAsset: "assets/images/homepagewall/mainbg.jpeg",
+      showBack: true,
+      scrollable: true,
+      contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _InfoCard(
+                roomName: data.roomName,
+                teacherTitle: data.homeroomTeacherTitle,
+                teacherName: data.homeroomTeacherName,
+              )
+              .animate()
+              .fadeIn(duration: 260.ms)
+              .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
 
-        // ✅ สำคัญ: ให้ปุ่มลูกศรใน AppBar ไป Explore
-        backToRouteName: '/homeShell',
+          const SizedBox(height: 14),
 
-        scrollable: true,
-        contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _InfoCard(
-                  roomName: data.roomName,
-                  teacherTitle: data.homeroomTeacherTitle,
-                  teacherName: data.homeroomTeacherName,
-                )
-                .animate()
-                .fadeIn(duration: 260.ms)
-                .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+          _ScheduleButtonsCard(schedule: data.scheduleMonFri)
+              .animate()
+              .fadeIn(duration: 260.ms, delay: 60.ms)
+              .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
 
-            const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-            _ScheduleButtonsCard(schedule: data.scheduleMonFri)
-                .animate()
-                .fadeIn(duration: 260.ms, delay: 60.ms)
-                .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+          Row(
+            children: [
+              Expanded(
+                child:
+                    Text(
+                          "Homework",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 220.ms, delay: 90.ms)
+                        .slideX(begin: 0.03, end: 0),
+              ),
+              Text(
+                    "All ${data.homeworks.length} • Done $done • Not sent $notSent",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(duration: 220.ms, delay: 120.ms)
+                  .slideX(begin: 0.03, end: 0),
+            ],
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 10),
 
-            Row(
-              children: [
-                Expanded(
-                  child:
-                      Text(
-                            "Homework",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          )
-                          .animate()
-                          .fadeIn(duration: 220.ms, delay: 90.ms)
-                          .slideX(begin: 0.03, end: 0),
-                ),
-                Text(
-                      "All ${data.homeworks.length} • Done $done • Not sent $notSent",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white70 : Colors.black54,
-                      ),
-                    )
-                    .animate()
-                    .fadeIn(duration: 220.ms, delay: 120.ms)
-                    .slideX(begin: 0.03, end: 0),
-              ],
-            ),
+          _ProgressBar(ratio: ratio)
+              .animate()
+              .fadeIn(duration: 220.ms, delay: 150.ms)
+              .slideX(begin: 0.03, end: 0),
 
-            const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-            _ProgressBar(ratio: ratio)
-                .animate()
-                .fadeIn(duration: 220.ms, delay: 150.ms)
-                .slideX(begin: 0.03, end: 0),
+          _FilterRow(
+                value: _filter,
+                onChanged: (v) => setState(() => _filter = v),
+              )
+              .animate()
+              .fadeIn(duration: 220.ms, delay: 180.ms)
+              .slideY(begin: 0.05, end: 0, curve: Curves.easeOutCubic),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-            _FilterRow(
-                  value: _filter,
-                  onChanged: (v) => setState(() => _filter = v),
-                )
-                .animate()
-                .fadeIn(duration: 220.ms, delay: 180.ms)
-                .slideY(begin: 0.05, end: 0, curve: Curves.easeOutCubic),
-
-            const SizedBox(height: 12),
-
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final hw = list[i];
-                return _HomeworkCard(item: hw)
-                    .animate()
-                    .fadeIn(duration: 220.ms, delay: (220 + i * 70).ms)
-                    .slideY(begin: 0.07, end: 0, curve: Curves.easeOutCubic);
-              },
-            ),
-          ],
-        ),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: list.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, i) {
+              final hw = list[i];
+              return _HomeworkCard(item: hw)
+                  .animate()
+                  .fadeIn(duration: 220.ms, delay: (220 + i * 70).ms)
+                  .slideY(begin: 0.07, end: 0, curve: Curves.easeOutCubic);
+            },
+          ),
+        ],
       ),
     );
   }

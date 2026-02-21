@@ -7,10 +7,10 @@ import '../../../../core/widgets/app_bottom_nav.dart';
 import '../../../../shared/models/student_card_item.dart';
 
 //Tab pages list at homepage
-import 'tabs/explore_page.dart';
+import 'tabs/mainhomepage.dart';
 import 'tabs/classroom.dart';
 import 'tabs/score.dart';
-import 'tabs/profile_page.dart';
+import 'tabs/fee.dart';
 import 'tabs/setting_page.dart';
 
 class HomeShellPage extends StatefulWidget {
@@ -179,8 +179,8 @@ class _HomeShellPageState extends State<HomeShellPage>
                 const ExplorePage(),
                 const ClassroomPage(),
                 const StudyPlanPage(),
-                const ProfilePage(),
-                const SettingPage(),
+                const FeePage(),
+                const SettingsPage(),
               ];
 
               final navItems = const [

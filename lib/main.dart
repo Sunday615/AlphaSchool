@@ -1,5 +1,5 @@
 import 'package:alpha_school/features/home/presentation/pages/home_shell_page.dart';
-import 'package:alpha_school/features/home/presentation/pages/tabs/explore_page.dart';
+import 'package:alpha_school/features/home/presentation/pages/tabs/mainhomepage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 

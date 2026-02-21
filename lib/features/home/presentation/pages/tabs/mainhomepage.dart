@@ -7,6 +7,8 @@ import 'package:alpha_school/features/home/presentation/pages/calendar/calendar_
 import 'package:alpha_school/features/home/presentation/pages/calendar/calendar_year.dart';
 import 'package:alpha_school/features/home/presentation/pages/contact/contact_page.dart';
 import 'package:alpha_school/features/home/presentation/pages/gallery/gallery_page.dart';
+import 'package:alpha_school/features/home/presentation/pages/news/news_page.dart';
+import 'package:alpha_school/features/home/presentation/pages/profile/profile.dart';
 import 'package:alpha_school/features/home/presentation/pages/saving/saving_page.dart';
 import 'package:alpha_school/features/home/presentation/pages/task/task_page.dart';
 import 'package:flutter/material.dart';
@@ -18,13 +20,15 @@ import 'package:remixicon/remixicon.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 
-// ✅ TODO: ปรับ path import ให้ตรงโปรเจกต์คุณ
-// import '../students/presentation/pages/students_card_list_page.dart';
+// ✅ ADD: profile page
 
 class ExplorePage extends StatelessWidget {
   const ExplorePage({super.key});
 
   static const _bgAsset = "assets/images/homepagewall/homepagewallpaper.jpg";
+
+  // ✅ ADD: profile avatar asset (shown in top bar)
+  static const _profileAvatarAsset = "assets/images/profile/me.jpg";
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +45,13 @@ class ExplorePage extends StatelessWidget {
 
     void go(Widget page) {
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    }
+
+    // ✅ ADD: open profile page
+    void openProfile() {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const ProfilePage()));
     }
 
     return Scaffold(
@@ -194,13 +205,38 @@ class ExplorePage extends StatelessWidget {
                               // ✅ TOP BAR
                               Row(
                                 children: [
-                                  CircleAvatar(
-                                        radius: avatarRadius,
-                                        backgroundColor: Colors.white24,
-                                        child: FaIcon(
-                                          FontAwesomeIcons.user,
-                                          color: Colors.white,
-                                          size: avatarIconSize,
+                                  // ✅ UPDATE: show avatar IMAGE from assets + tap -> profile
+                                  InkResponse(
+                                        onTap: openProfile,
+                                        radius: avatarRadius + 12,
+                                        child: Container(
+                                          width: avatarRadius * 2,
+                                          height: avatarRadius * 2,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.white24,
+                                            border: Border.all(
+                                              color: Colors.white.withOpacity(
+                                                .20,
+                                              ),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: ClipOval(
+                                            child: Image.asset(
+                                              _profileAvatarAsset,
+                                              fit: BoxFit.cover,
+                                              filterQuality: FilterQuality.high,
+                                              errorBuilder: (_, __, ___) =>
+                                                  Center(
+                                                    child: FaIcon(
+                                                      FontAwesomeIcons.user,
+                                                      color: Colors.white,
+                                                      size: avatarIconSize,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ),
                                         ),
                                       )
                                       .animate()
@@ -329,10 +365,9 @@ class ExplorePage extends StatelessWidget {
 
                               SizedBox(height: gapBetweenCards),
 
-                              // ✅ Event & Announcement card (tappable)
-                              _TapScale(
-                                    onTap: () =>
-                                        go(const EventAnnouncementPage()),
+                              // ✅ Event & Announcement card (PREVIEW ONLY — no tap)
+                              IgnorePointer(
+                                    ignoring: true,
                                     child: _MiniInfoCard(
                                       height: miniCardH,
                                       blur: miniBlur,
@@ -1311,7 +1346,7 @@ class _WalletSheet extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const SubPageDemo()),
+            MaterialPageRoute(builder: (_) => const NewsPage()),
           );
         },
       ),
@@ -1573,12 +1608,18 @@ class _GlowBlob extends StatelessWidget {
 }
 
 // =====================
-// ✅ Tap helper
+// ✅ Tap helper (UPDATED: support enabled=false)
 // =====================
 class _TapScale extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
-  const _TapScale({required this.child, required this.onTap});
+  final bool enabled;
+
+  const _TapScale({
+    required this.child,
+    required this.onTap,
+    this.enabled = true,
+  });
 
   @override
   State<_TapScale> createState() => _TapScaleState();
@@ -1589,6 +1630,8 @@ class _TapScaleState extends State<_TapScale> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.enabled) return widget.child;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: widget.onTap,
